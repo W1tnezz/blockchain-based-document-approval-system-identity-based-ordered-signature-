@@ -29,9 +29,17 @@ var (
 	_ = abi.ConvertType
 )
 
+// BatchVerifierSigner is an auto generated low-level Go binding around an user-defined struct.
+type BatchVerifierSigner struct {
+	Addr     common.Address
+	IpAddr   string
+	Identity string
+	PubKey   [2]*big.Int
+}
+
 // BatchVerifierMetaData contains all meta data concerning the BatchVerifier contract.
 var BatchVerifierMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"enumBatchVerifier.SignType\",\"name\":\"typ\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"message\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address[]\",\"name\":\"signOrder\",\"type\":\"address[]\"}],\"name\":\"Sign\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"ipAddr\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"identity\",\"type\":\"string\"},{\"internalType\":\"uint256[2]\",\"name\":\"pubKey\",\"type\":\"uint256[2]\"}],\"name\":\"register\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"enumBatchVerifier.SignType\",\"name\":\"typ\",\"type\":\"uint8\"},{\"internalType\":\"bytes32\",\"name\":\"_message\",\"type\":\"bytes32\"},{\"internalType\":\"uint256[]\",\"name\":\"signOrder\",\"type\":\"uint256[]\"}],\"name\":\"requestSign\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[4]\",\"name\":\"masterPubKey\",\"type\":\"uint256[4]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"setOfR\",\"type\":\"uint256[4][]\"}],\"name\":\"submitBatch1\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"submitBatch2\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[4]\",\"name\":\"masterPubKey\",\"type\":\"uint256[4]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"setOfR\",\"type\":\"uint256[4][]\"}],\"name\":\"submitNotBatch\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"enumBatchVerifier.SignType\",\"name\":\"typ\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"message\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address[]\",\"name\":\"signOrder\",\"type\":\"address[]\"}],\"name\":\"Sign\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"getSignerByAddress\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"},{\"internalType\":\"string\",\"name\":\"ipAddr\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"identity\",\"type\":\"string\"},{\"internalType\":\"uint256[2]\",\"name\":\"pubKey\",\"type\":\"uint256[2]\"}],\"internalType\":\"structBatchVerifier.Signer\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"addr\",\"type\":\"address\"}],\"name\":\"getSignerPubkeyByAddress\",\"outputs\":[{\"internalType\":\"uint256[2]\",\"name\":\"\",\"type\":\"uint256[2]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"ipAddr\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"identity\",\"type\":\"string\"},{\"internalType\":\"uint256[2]\",\"name\":\"pubKey\",\"type\":\"uint256[2]\"}],\"name\":\"register\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"enumBatchVerifier.SignType\",\"name\":\"typ\",\"type\":\"uint8\"},{\"internalType\":\"bytes32\",\"name\":\"_message\",\"type\":\"bytes32\"},{\"internalType\":\"uint256[]\",\"name\":\"signOrder\",\"type\":\"uint256[]\"}],\"name\":\"requestSign\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[4]\",\"name\":\"masterPubKey\",\"type\":\"uint256[4]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"setOfR\",\"type\":\"uint256[4][]\"}],\"name\":\"submitBatch1\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"submitBatch2\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[4]\",\"name\":\"masterPubKey\",\"type\":\"uint256[4]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"setOfR\",\"type\":\"uint256[4][]\"}],\"name\":\"submitNotBatch\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
 }
 
 // BatchVerifierABI is the input ABI used to generate the binding from.
@@ -178,6 +186,68 @@ func (_BatchVerifier *BatchVerifierTransactorRaw) Transfer(opts *bind.TransactOp
 // Transact invokes the (paid) contract method with params as input values.
 func (_BatchVerifier *BatchVerifierTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _BatchVerifier.Contract.contract.Transact(opts, method, params...)
+}
+
+// GetSignerByAddress is a free data retrieval call binding the contract method 0xc50bafcc.
+//
+// Solidity: function getSignerByAddress(address addr) view returns((address,string,string,uint256[2]))
+func (_BatchVerifier *BatchVerifierCaller) GetSignerByAddress(opts *bind.CallOpts, addr common.Address) (BatchVerifierSigner, error) {
+	var out []interface{}
+	err := _BatchVerifier.contract.Call(opts, &out, "getSignerByAddress", addr)
+
+	if err != nil {
+		return *new(BatchVerifierSigner), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(BatchVerifierSigner)).(*BatchVerifierSigner)
+
+	return out0, err
+
+}
+
+// GetSignerByAddress is a free data retrieval call binding the contract method 0xc50bafcc.
+//
+// Solidity: function getSignerByAddress(address addr) view returns((address,string,string,uint256[2]))
+func (_BatchVerifier *BatchVerifierSession) GetSignerByAddress(addr common.Address) (BatchVerifierSigner, error) {
+	return _BatchVerifier.Contract.GetSignerByAddress(&_BatchVerifier.CallOpts, addr)
+}
+
+// GetSignerByAddress is a free data retrieval call binding the contract method 0xc50bafcc.
+//
+// Solidity: function getSignerByAddress(address addr) view returns((address,string,string,uint256[2]))
+func (_BatchVerifier *BatchVerifierCallerSession) GetSignerByAddress(addr common.Address) (BatchVerifierSigner, error) {
+	return _BatchVerifier.Contract.GetSignerByAddress(&_BatchVerifier.CallOpts, addr)
+}
+
+// GetSignerPubkeyByAddress is a free data retrieval call binding the contract method 0xd999dc79.
+//
+// Solidity: function getSignerPubkeyByAddress(address addr) view returns(uint256[2])
+func (_BatchVerifier *BatchVerifierCaller) GetSignerPubkeyByAddress(opts *bind.CallOpts, addr common.Address) ([2]*big.Int, error) {
+	var out []interface{}
+	err := _BatchVerifier.contract.Call(opts, &out, "getSignerPubkeyByAddress", addr)
+
+	if err != nil {
+		return *new([2]*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new([2]*big.Int)).(*[2]*big.Int)
+
+	return out0, err
+
+}
+
+// GetSignerPubkeyByAddress is a free data retrieval call binding the contract method 0xd999dc79.
+//
+// Solidity: function getSignerPubkeyByAddress(address addr) view returns(uint256[2])
+func (_BatchVerifier *BatchVerifierSession) GetSignerPubkeyByAddress(addr common.Address) ([2]*big.Int, error) {
+	return _BatchVerifier.Contract.GetSignerPubkeyByAddress(&_BatchVerifier.CallOpts, addr)
+}
+
+// GetSignerPubkeyByAddress is a free data retrieval call binding the contract method 0xd999dc79.
+//
+// Solidity: function getSignerPubkeyByAddress(address addr) view returns(uint256[2])
+func (_BatchVerifier *BatchVerifierCallerSession) GetSignerPubkeyByAddress(addr common.Address) ([2]*big.Int, error) {
+	return _BatchVerifier.Contract.GetSignerPubkeyByAddress(&_BatchVerifier.CallOpts, addr)
 }
 
 // Register is a paid mutator transaction binding the contract method 0xd55bef0d.
