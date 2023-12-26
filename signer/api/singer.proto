@@ -3,18 +3,6 @@ syntax = "proto3";
 package signer;
 option go_package = "./signer";
 
-
-// 第一部分，应该是发送给keyGenerator来生成身份私钥
-message getIBEPrivatekeyRequest {
-    bytes id = 1;
-}
-
-message getIBEPrivatekeyResponse {
-    bytes key = 1;
-    bytes mpk = 2;
-}
-
-
 // 第二部分，应该是发送给下一签名者来构造顺序签名
 message sendSignature {
     bytes signature = 1;
@@ -25,6 +13,5 @@ message sendSignatureResponse {
 }
 
 service Signer {
-  rpc getPrivateKey(getIBEPrivatekeyRequest) returns (getIBEPrivatekeyResponse);
   rpc sendOwnSignature(sendSignature) returns (sendSignatureResponse);
 }
