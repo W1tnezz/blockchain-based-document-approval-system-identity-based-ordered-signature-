@@ -31,7 +31,7 @@ var (
 
 // BatchVerifierMetaData contains all meta data concerning the BatchVerifier contract.
 var BatchVerifierMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"enumBatchVerifier.SignType\",\"name\":\"typ\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"message\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address[]\",\"name\":\"signOrder\",\"type\":\"address[]\"}],\"name\":\"Sign\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"ipAddr\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"identity\",\"type\":\"string\"}],\"name\":\"register\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"enumBatchVerifier.SignType\",\"name\":\"typ\",\"type\":\"uint8\"},{\"internalType\":\"bytes32\",\"name\":\"message\",\"type\":\"bytes32\"},{\"internalType\":\"uint256[]\",\"name\":\"signOrder\",\"type\":\"uint256[]\"}],\"name\":\"requestSign\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"submitBatch1\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"submitBatch2\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"submitNotBatch\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"enumBatchVerifier.SignType\",\"name\":\"typ\",\"type\":\"uint8\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"message\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address[]\",\"name\":\"signOrder\",\"type\":\"address[]\"}],\"name\":\"Sign\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"ipAddr\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"identity\",\"type\":\"string\"},{\"internalType\":\"uint256[2]\",\"name\":\"pubKey\",\"type\":\"uint256[2]\"}],\"name\":\"register\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"enumBatchVerifier.SignType\",\"name\":\"typ\",\"type\":\"uint8\"},{\"internalType\":\"bytes32\",\"name\":\"_message\",\"type\":\"bytes32\"},{\"internalType\":\"uint256[]\",\"name\":\"signOrder\",\"type\":\"uint256[]\"}],\"name\":\"requestSign\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[4]\",\"name\":\"masterPubKey\",\"type\":\"uint256[4]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"setOfR\",\"type\":\"uint256[4][]\"}],\"name\":\"submitBatch1\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"submitBatch2\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[4]\",\"name\":\"masterPubKey\",\"type\":\"uint256[4]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"setOfR\",\"type\":\"uint256[4][]\"}],\"name\":\"submitNotBatch\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
 }
 
 // BatchVerifierABI is the input ABI used to generate the binding from.
@@ -180,67 +180,67 @@ func (_BatchVerifier *BatchVerifierTransactorRaw) Transact(opts *bind.TransactOp
 	return _BatchVerifier.Contract.contract.Transact(opts, method, params...)
 }
 
-// Register is a paid mutator transaction binding the contract method 0x3ffbd47f.
+// Register is a paid mutator transaction binding the contract method 0xd55bef0d.
 //
-// Solidity: function register(string ipAddr, string identity) payable returns()
-func (_BatchVerifier *BatchVerifierTransactor) Register(opts *bind.TransactOpts, ipAddr string, identity string) (*types.Transaction, error) {
-	return _BatchVerifier.contract.Transact(opts, "register", ipAddr, identity)
+// Solidity: function register(string ipAddr, string identity, uint256[2] pubKey) payable returns()
+func (_BatchVerifier *BatchVerifierTransactor) Register(opts *bind.TransactOpts, ipAddr string, identity string, pubKey [2]*big.Int) (*types.Transaction, error) {
+	return _BatchVerifier.contract.Transact(opts, "register", ipAddr, identity, pubKey)
 }
 
-// Register is a paid mutator transaction binding the contract method 0x3ffbd47f.
+// Register is a paid mutator transaction binding the contract method 0xd55bef0d.
 //
-// Solidity: function register(string ipAddr, string identity) payable returns()
-func (_BatchVerifier *BatchVerifierSession) Register(ipAddr string, identity string) (*types.Transaction, error) {
-	return _BatchVerifier.Contract.Register(&_BatchVerifier.TransactOpts, ipAddr, identity)
+// Solidity: function register(string ipAddr, string identity, uint256[2] pubKey) payable returns()
+func (_BatchVerifier *BatchVerifierSession) Register(ipAddr string, identity string, pubKey [2]*big.Int) (*types.Transaction, error) {
+	return _BatchVerifier.Contract.Register(&_BatchVerifier.TransactOpts, ipAddr, identity, pubKey)
 }
 
-// Register is a paid mutator transaction binding the contract method 0x3ffbd47f.
+// Register is a paid mutator transaction binding the contract method 0xd55bef0d.
 //
-// Solidity: function register(string ipAddr, string identity) payable returns()
-func (_BatchVerifier *BatchVerifierTransactorSession) Register(ipAddr string, identity string) (*types.Transaction, error) {
-	return _BatchVerifier.Contract.Register(&_BatchVerifier.TransactOpts, ipAddr, identity)
-}
-
-// RequestSign is a paid mutator transaction binding the contract method 0x14b0845b.
-//
-// Solidity: function requestSign(uint8 typ, bytes32 message, uint256[] signOrder) payable returns()
-func (_BatchVerifier *BatchVerifierTransactor) RequestSign(opts *bind.TransactOpts, typ uint8, message [32]byte, signOrder []*big.Int) (*types.Transaction, error) {
-	return _BatchVerifier.contract.Transact(opts, "requestSign", typ, message, signOrder)
+// Solidity: function register(string ipAddr, string identity, uint256[2] pubKey) payable returns()
+func (_BatchVerifier *BatchVerifierTransactorSession) Register(ipAddr string, identity string, pubKey [2]*big.Int) (*types.Transaction, error) {
+	return _BatchVerifier.Contract.Register(&_BatchVerifier.TransactOpts, ipAddr, identity, pubKey)
 }
 
 // RequestSign is a paid mutator transaction binding the contract method 0x14b0845b.
 //
-// Solidity: function requestSign(uint8 typ, bytes32 message, uint256[] signOrder) payable returns()
-func (_BatchVerifier *BatchVerifierSession) RequestSign(typ uint8, message [32]byte, signOrder []*big.Int) (*types.Transaction, error) {
-	return _BatchVerifier.Contract.RequestSign(&_BatchVerifier.TransactOpts, typ, message, signOrder)
+// Solidity: function requestSign(uint8 typ, bytes32 _message, uint256[] signOrder) payable returns()
+func (_BatchVerifier *BatchVerifierTransactor) RequestSign(opts *bind.TransactOpts, typ uint8, _message [32]byte, signOrder []*big.Int) (*types.Transaction, error) {
+	return _BatchVerifier.contract.Transact(opts, "requestSign", typ, _message, signOrder)
 }
 
 // RequestSign is a paid mutator transaction binding the contract method 0x14b0845b.
 //
-// Solidity: function requestSign(uint8 typ, bytes32 message, uint256[] signOrder) payable returns()
-func (_BatchVerifier *BatchVerifierTransactorSession) RequestSign(typ uint8, message [32]byte, signOrder []*big.Int) (*types.Transaction, error) {
-	return _BatchVerifier.Contract.RequestSign(&_BatchVerifier.TransactOpts, typ, message, signOrder)
+// Solidity: function requestSign(uint8 typ, bytes32 _message, uint256[] signOrder) payable returns()
+func (_BatchVerifier *BatchVerifierSession) RequestSign(typ uint8, _message [32]byte, signOrder []*big.Int) (*types.Transaction, error) {
+	return _BatchVerifier.Contract.RequestSign(&_BatchVerifier.TransactOpts, typ, _message, signOrder)
 }
 
-// SubmitBatch1 is a paid mutator transaction binding the contract method 0xea965306.
+// RequestSign is a paid mutator transaction binding the contract method 0x14b0845b.
 //
-// Solidity: function submitBatch1() payable returns()
-func (_BatchVerifier *BatchVerifierTransactor) SubmitBatch1(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _BatchVerifier.contract.Transact(opts, "submitBatch1")
+// Solidity: function requestSign(uint8 typ, bytes32 _message, uint256[] signOrder) payable returns()
+func (_BatchVerifier *BatchVerifierTransactorSession) RequestSign(typ uint8, _message [32]byte, signOrder []*big.Int) (*types.Transaction, error) {
+	return _BatchVerifier.Contract.RequestSign(&_BatchVerifier.TransactOpts, typ, _message, signOrder)
 }
 
-// SubmitBatch1 is a paid mutator transaction binding the contract method 0xea965306.
+// SubmitBatch1 is a paid mutator transaction binding the contract method 0x7260d496.
 //
-// Solidity: function submitBatch1() payable returns()
-func (_BatchVerifier *BatchVerifierSession) SubmitBatch1() (*types.Transaction, error) {
-	return _BatchVerifier.Contract.SubmitBatch1(&_BatchVerifier.TransactOpts)
+// Solidity: function submitBatch1(uint256[4] masterPubKey, uint256[2][] signatures, uint256[4][] setOfR) payable returns()
+func (_BatchVerifier *BatchVerifierTransactor) SubmitBatch1(opts *bind.TransactOpts, masterPubKey [4]*big.Int, signatures [][2]*big.Int, setOfR [][4]*big.Int) (*types.Transaction, error) {
+	return _BatchVerifier.contract.Transact(opts, "submitBatch1", masterPubKey, signatures, setOfR)
 }
 
-// SubmitBatch1 is a paid mutator transaction binding the contract method 0xea965306.
+// SubmitBatch1 is a paid mutator transaction binding the contract method 0x7260d496.
 //
-// Solidity: function submitBatch1() payable returns()
-func (_BatchVerifier *BatchVerifierTransactorSession) SubmitBatch1() (*types.Transaction, error) {
-	return _BatchVerifier.Contract.SubmitBatch1(&_BatchVerifier.TransactOpts)
+// Solidity: function submitBatch1(uint256[4] masterPubKey, uint256[2][] signatures, uint256[4][] setOfR) payable returns()
+func (_BatchVerifier *BatchVerifierSession) SubmitBatch1(masterPubKey [4]*big.Int, signatures [][2]*big.Int, setOfR [][4]*big.Int) (*types.Transaction, error) {
+	return _BatchVerifier.Contract.SubmitBatch1(&_BatchVerifier.TransactOpts, masterPubKey, signatures, setOfR)
+}
+
+// SubmitBatch1 is a paid mutator transaction binding the contract method 0x7260d496.
+//
+// Solidity: function submitBatch1(uint256[4] masterPubKey, uint256[2][] signatures, uint256[4][] setOfR) payable returns()
+func (_BatchVerifier *BatchVerifierTransactorSession) SubmitBatch1(masterPubKey [4]*big.Int, signatures [][2]*big.Int, setOfR [][4]*big.Int) (*types.Transaction, error) {
+	return _BatchVerifier.Contract.SubmitBatch1(&_BatchVerifier.TransactOpts, masterPubKey, signatures, setOfR)
 }
 
 // SubmitBatch2 is a paid mutator transaction binding the contract method 0x500ea6dd.
@@ -264,25 +264,25 @@ func (_BatchVerifier *BatchVerifierTransactorSession) SubmitBatch2() (*types.Tra
 	return _BatchVerifier.Contract.SubmitBatch2(&_BatchVerifier.TransactOpts)
 }
 
-// SubmitNotBatch is a paid mutator transaction binding the contract method 0xeb7b6c53.
+// SubmitNotBatch is a paid mutator transaction binding the contract method 0xf7ab32dd.
 //
-// Solidity: function submitNotBatch() payable returns()
-func (_BatchVerifier *BatchVerifierTransactor) SubmitNotBatch(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _BatchVerifier.contract.Transact(opts, "submitNotBatch")
+// Solidity: function submitNotBatch(uint256[4] masterPubKey, uint256[2][] signatures, uint256[4][] setOfR) payable returns()
+func (_BatchVerifier *BatchVerifierTransactor) SubmitNotBatch(opts *bind.TransactOpts, masterPubKey [4]*big.Int, signatures [][2]*big.Int, setOfR [][4]*big.Int) (*types.Transaction, error) {
+	return _BatchVerifier.contract.Transact(opts, "submitNotBatch", masterPubKey, signatures, setOfR)
 }
 
-// SubmitNotBatch is a paid mutator transaction binding the contract method 0xeb7b6c53.
+// SubmitNotBatch is a paid mutator transaction binding the contract method 0xf7ab32dd.
 //
-// Solidity: function submitNotBatch() payable returns()
-func (_BatchVerifier *BatchVerifierSession) SubmitNotBatch() (*types.Transaction, error) {
-	return _BatchVerifier.Contract.SubmitNotBatch(&_BatchVerifier.TransactOpts)
+// Solidity: function submitNotBatch(uint256[4] masterPubKey, uint256[2][] signatures, uint256[4][] setOfR) payable returns()
+func (_BatchVerifier *BatchVerifierSession) SubmitNotBatch(masterPubKey [4]*big.Int, signatures [][2]*big.Int, setOfR [][4]*big.Int) (*types.Transaction, error) {
+	return _BatchVerifier.Contract.SubmitNotBatch(&_BatchVerifier.TransactOpts, masterPubKey, signatures, setOfR)
 }
 
-// SubmitNotBatch is a paid mutator transaction binding the contract method 0xeb7b6c53.
+// SubmitNotBatch is a paid mutator transaction binding the contract method 0xf7ab32dd.
 //
-// Solidity: function submitNotBatch() payable returns()
-func (_BatchVerifier *BatchVerifierTransactorSession) SubmitNotBatch() (*types.Transaction, error) {
-	return _BatchVerifier.Contract.SubmitNotBatch(&_BatchVerifier.TransactOpts)
+// Solidity: function submitNotBatch(uint256[4] masterPubKey, uint256[2][] signatures, uint256[4][] setOfR) payable returns()
+func (_BatchVerifier *BatchVerifierTransactorSession) SubmitNotBatch(masterPubKey [4]*big.Int, signatures [][2]*big.Int, setOfR [][4]*big.Int) (*types.Transaction, error) {
+	return _BatchVerifier.Contract.SubmitNotBatch(&_BatchVerifier.TransactOpts, masterPubKey, signatures, setOfR)
 }
 
 // BatchVerifierSignIterator is returned from FilterSign and is used to iterate over the raw logs and unpacked data for Sign events raised by the BatchVerifier contract.
