@@ -2,12 +2,14 @@ package generator
 
 import (
 	context "context"
+	"crypto/sha256"
+	"log"
 	"net"
 
-	"github.com/ethereum/go-ethereum/log"
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/pairing"
 	grpc "google.golang.org/grpc"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/reflection"
 )
 
@@ -21,17 +23,45 @@ type Generator struct {
 }
 
 // GetMasterPublicKey implements PrivateKeyGeneratorServer.
-func (*Generator) GetMasterPublicKey(context.Context, *GetMasterPublicKeyRequest) (*GetMasterPublicKeyResponse, error) {
-	panic("unimplemented")
+func (g *Generator) GetMasterPublicKey(ctx context.Context, req *GetMasterPublicKeyRequest) (*GetMasterPublicKeyResponse, error) {
+	pr, ok := peer.FromContext(ctx)
+	if !ok {
+        log.Fatalf("[getClinetIP] invoke FromContext() failed")
+    }
+	log.Println("Handle get master public key request from " + pr.Addr.String())
+	rsp, err := g.masterPublicKey.MarshalBinary()
+	if err != nil{
+		log.Fatal("Marshal master public key error: ", err)
+		return nil, err
+	}
+	return &GetMasterPublicKeyResponse{MasterPublicKey: rsp}, nil
 }
 
 // GetPrivateKey implements PrivateKeyGeneratorServer.
-func (*Generator) GetPrivateKey(context.Context, *GetPrivatekeyRequest) (*GetPrivatekeyResponse, error) {
-	panic("unimplemented")
+func (g *Generator) GetPrivateKey(ctx context.Context, req *GetPrivatekeyRequest) (*GetPrivatekeyResponse, error) {
+	pr, ok := peer.FromContext(ctx)
+	if !ok {
+        log.Fatalf("[getClinetIP] invoke FromContext() failed")
+    }
+
+	identity := req.Identity
+	log.Println("Handle get private key request from " + pr.Addr.String() + ", identity: " + identity)
+
+	h := sha256.New()
+    h.Write([]byte(identity))
+	identityHashScalar := g.suite.G1().Scalar().SetBytes(h.Sum(nil))
+	privateKey := g.suite.G1().Point().Base()
+	privateKey = g.suite.G1().Point().Mul(identityHashScalar, privateKey)
+	rsp, err := privateKey.MarshalBinary()
+	if err != nil{
+		log.Fatal("Marshal private key error: ", err)
+		return nil, err
+	}
+	return &GetPrivatekeyResponse{PrivateKey: rsp}, nil
 }
 
 // mustEmbedUnimplementedPrivateKeyGeneratorServer implements PrivateKeyGeneratorServer.
-func (*Generator) mustEmbedUnimplementedPrivateKeyGeneratorServer() {
+func (g *Generator) mustEmbedUnimplementedPrivateKeyGeneratorServer() {
 	panic("unimplemented")
 }
 
@@ -39,7 +69,6 @@ func NewGenerator(
 	suite pairing.Suite,
 	port string,
 ) *Generator {
-	log.Info("Initialize private key generator...")
 	masterPrivateKey := suite.G2().Scalar().Pick(suite.RandomStream())
 	masterPublicKey := suite.G2().Point().Base()
 	masterPublicKey = suite.G2().Point().Mul(masterPrivateKey, masterPublicKey)
@@ -52,14 +81,15 @@ func NewGenerator(
 }
 
 func (g *Generator) LaunchGrpcServer() {
-	log.Info("Launch grpc serve...")
+	log.Println("Initialize private key generator")
 	lis, err := net.Listen("tcp", "127.0.0.1:" + g.port)
 	if err != nil {
-		log.Error("failed to listen: %v", err)
+		log.Fatalf("failed to listen: %v", err)
 	}
 
 	g.listener = lis
 
+	log.Println("Launch grpc serve")
 	// 实例化grpc服务端
 	s := grpc.NewServer()
 	g.server = s
@@ -71,12 +101,12 @@ func (g *Generator) LaunchGrpcServer() {
 
 	// 启动grpc服务
 	if err := s.Serve(lis); err != nil {
-		log.Error("failed to serve: %v", err)
+		log.Fatalf("failed to serve: %v", err)
 	}
 }
 
 func (g *Generator) Close(){
 	g.server.Stop()
 	g.listener.Close()
-	log.Info("Close grpc server and release port")
+	log.Println("Close grpc server and release port")
 }
