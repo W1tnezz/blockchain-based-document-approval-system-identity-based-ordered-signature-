@@ -1,6 +1,6 @@
 module signer
 
-go 1.21.3
+go 1.20
 
 require github.com/ethereum/go-ethereum v1.13.8
 
