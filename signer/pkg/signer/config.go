@@ -8,7 +8,7 @@ type Config struct {
 }
 
 type ContractsConfig struct {
-	OracleContractAddress  string
+	ContractAddress        string
 	DistKeyContractAddress string
 }
 

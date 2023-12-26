@@ -52,7 +52,7 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 	// 区块链的ID
 	chainId := big.NewInt(c.Ethereum.ChainID)
 
-	BatchVerifier, err := NewBatchVerifier(common.HexToAddress(c.Contracts.OracleContractAddress), EthClient)
+	BatchVerifier, err := NewBatchVerifier(common.HexToAddress(c.Contracts.ContractAddress), EthClient)
 
 	if err != nil {
 		return nil, fmt.Errorf("oracle contract: %v", err)
