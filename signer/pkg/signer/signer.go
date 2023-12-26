@@ -142,10 +142,11 @@ func (s *Signer) orderlySakai(event *OracleContractValidationRequest) error {
 
 	} else {
 		// 不是第一个节点，需要被唤醒
-		
+
 	}
 	return nil
 }
+
 
 func (s *Signer) sakai(message []byte) (kyber.Point, kyber.Point) {
 	r := s.suite.G1().Scalar().Pick(random.New())

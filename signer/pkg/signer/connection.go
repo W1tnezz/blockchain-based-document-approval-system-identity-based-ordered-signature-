@@ -68,24 +68,6 @@ func (m *ConnectionManager) HandleRegisterOracleNodeLog(event *OracleContractReg
 	return nil
 }
 
-func (m *ConnectionManager) InitConnections() error {
-	log.Info("Initialize connections to other nodes")
-	nodes, err := m.oracleContract.FindOracleNodes()
-	if err != nil {
-		return fmt.Errorf("find nodes: %w", err)
-	}
-	for _, node := range nodes {
-		if node.Addr == m.account {
-			continue
-		}
-		if _, err := m.NewConnection(node); err != nil {
-			log.Errorf("New connection %s: %v", node.IpAddr, err)
-			continue
-		}
-	}
-	return nil
-}
-
 // 创建连接,使用数组保存,对每一个节点使用数组保存连接状态
 func (m *ConnectionManager) NewConnection(node OracleContractOracleNode) (*grpc.ClientConn, error) {
 	m.Lock()
