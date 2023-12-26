@@ -21,6 +21,7 @@ import (
 func AddressFromPrivateKey(privateKey *ecdsa.PrivateKey) (string, error) {
 	publicKey := privateKey.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	
 	if !ok {
 		return "", fmt.Errorf("could not cast to public key ecdsa")
 	}

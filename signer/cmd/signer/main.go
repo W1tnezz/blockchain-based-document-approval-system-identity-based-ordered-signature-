@@ -11,14 +11,16 @@ import (
 )
 
 func main() {
+	
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	log.SetOutput(os.Stdout)
 	commonConfig := "./configs/common.json"
 	configFile := flag.String("c", "./configs/config.json", "filename of the config file")
 	flag.Parse()
 
 	// var config signer.Config
 	var config signer.Config
-
+	
 	// 公共配置
 	viper.SetConfigFile(*&commonConfig)
 	if err := viper.ReadInConfig(); err != nil {
@@ -36,7 +38,6 @@ func main() {
 	if err := viper.Unmarshal(&config); err != nil {
 		log.Println("Unmarshal config into struct, ", err)
 	}
-
 	log.Println("Loaded config file ", *configFile)
 
 	node, err := signer.NewOracleNode(config) // 根据config初始化node

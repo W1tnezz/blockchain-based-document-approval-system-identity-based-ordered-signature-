@@ -150,7 +150,7 @@ func (n *OracleNode) Run() error {
 
 	go func() {
 		if err := n.signerNode.WatchAndHandleSignatureRequestsLog(context.Background(), n); err != nil {
-			log.Fatal("Watch and handle SigatureRequest log: %v", err)
+			log.Fatal("Watch and handle SigatureRequest log: %w", err)
 		}
 	}()
 
