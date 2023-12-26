@@ -122,7 +122,10 @@ contract BatchVerifier {
 		for(uint i = 1; i < SignOrder.length; i++){
 			uint256 tempX;
 			uint256 tempY;
-			(tempX, tempY) = BN256G1.mulPoint([G1_GEN_X, G1_GEN_Y, uint256(sha256(abi.encodePacked(message, signatures[i - 1][0], signatures[i - 1][1])))]);
+			bytes memory t = abi.encodePacked(message, signatures[i - 1][0]);
+			t = abi.encodePacked(t, signatures[i - 1][1]);
+			bytes32 res = sha256(t);
+			(tempX, tempY) = BN256G1.mulPoint([G1_GEN_X, G1_GEN_Y, uint256(res)]);
 
 			uint256[2] memory hashPoint;
 			(hashPoint[0], hashPoint[1]) = BN256G1.mulPoint([tempX, tempY, randoms[i]]);

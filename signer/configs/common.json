@@ -1,6 +1,6 @@
 {
   "contracts": {
-    "ContractAddress": "0x27728eC32C8e43fd07160FDc981731F98EF1a84F"
+    "ContractAddress": "0xb4fa0c161ca7311c9f5f8145559465e4810f3ba2"
   },
   "ethereum": {
     "Address": "ws://127.0.0.1:8545",

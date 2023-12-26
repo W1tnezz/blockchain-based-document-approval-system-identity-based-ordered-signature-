@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"generator/pkg/generator"
+	"log"
 	"math/big"
 	"net"
 	"time"
@@ -14,7 +15,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	log "github.com/sirupsen/logrus"
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/pairing"
 	"go.dedis.ch/kyber/v3/pairing/bn256"
@@ -150,7 +150,7 @@ func (n *OracleNode) Run() error {
 
 	go func() {
 		if err := n.signerNode.WatchAndHandleSignatureRequestsLog(context.Background(), n); err != nil {
-			log.Errorf("Watch and handle SigatureRequest log: %v", err)
+			log.Fatal("Watch and handle SigatureRequest log: %v", err)
 		}
 	}()
 
