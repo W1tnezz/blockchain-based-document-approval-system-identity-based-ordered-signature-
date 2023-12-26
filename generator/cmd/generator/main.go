@@ -1,11 +1,8 @@
 package main
 
 import (
-
-	
 	"os"
 	"os/signal"
-
 )
 
 func main() {

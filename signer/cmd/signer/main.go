@@ -14,7 +14,7 @@ func main() {
 	commonConfig := "./configs/common.json"
 	configFile := flag.String("c", "./configs/config.json", "filename of the config file")
 	flag.Parse()
-
+	
 	// var config signer.Config
 	var config signer.Config
 

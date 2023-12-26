@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package generator;
+option go_package = "./generator";
+
+
+message getPrivatekeyRequest {
+    string identity = 1;
+}
+
+
+message getPrivatekeyResponse {
+    bytes privateKey = 1;
+}
+
+message getMasterPublicKeyRequest {
+
+}
+
+message getMasterPublicKeyResponse {
+    bytes masterPublicKey = 1;
+}
+
+service PrivateKeyGenerator {
+  rpc getPrivateKey(getPrivatekeyRequest) returns (getPrivatekeyResponse);
+  rpc getMasterPublicKey(getMasterPublicKeyRequest) returns (getMasterPublicKeyResponse);
+}
