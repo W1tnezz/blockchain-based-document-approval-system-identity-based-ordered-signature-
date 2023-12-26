@@ -49,7 +49,7 @@ func G1PointToBig(point kyber.Point) ([2]*big.Int, error) {
 	}, nil
 }
 
-// 
+//
 func G2PointToBig(point kyber.Point) ([4]*big.Int, error) {
 	b, err := point.MarshalBinary()
 	if err != nil {

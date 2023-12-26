@@ -15,6 +15,7 @@ func main() {
 	configFile := flag.String("c", "./configs/config.json", "filename of the config file")
 	flag.Parse()
 
+	// var config signer.Config
 	var config signer.Config
 
 	// 公共配置

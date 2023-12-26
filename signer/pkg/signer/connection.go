@@ -13,16 +13,16 @@ import (
 
 type ConnectionManager struct {
 	sync.RWMutex
-	oracleContract  *oracleContractWrapper
-	account          common.Address
-	connections      map[common.Address]*grpc.ClientConn
+	oracleContract *oracleContractWrapper
+	account        common.Address
+	connections    map[common.Address]*grpc.ClientConn
 }
 
 func NewConnectionManager(oracleContract *oracleContractWrapper, account common.Address) *ConnectionManager {
 	return &ConnectionManager{
-		oracleContract:   oracleContract,
-		account:          account,
-		connections:      make(map[common.Address]*grpc.ClientConn),
+		oracleContract: oracleContract,
+		account:        account,
+		connections:    make(map[common.Address]*grpc.ClientConn),
 	}
 }
 

@@ -7,8 +7,6 @@ import (
 	"math/big"
 	"net"
 
-	"signer/internal/pkg/kyber/pairing/bn256"
-
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -16,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/pairing"
+	"go.dedis.ch/kyber/v3/pairing/bn256"
 	"google.golang.org/grpc"
 )
 
@@ -78,8 +77,8 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 	signers := make([]common.Address, 0)
 	signatures := make([]kyber.Point, 0)
 	R := make([]kyber.Point, 0)
-	
-	privateKey := suite
+
+	privateKey := suite.G1().Point().Base() // 先随机成基础数值
 
 	Signer := NewSigner(
 		suite,
@@ -109,7 +108,7 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 		signerNode:        Signer,
 	}
 
-	RegisterOracleNodeServer(server, node)
+	RegisterSignerServer(server, node)
 
 	return node, nil
 }
@@ -127,8 +126,8 @@ func (n *OracleNode) Run() error {
 	}()
 
 	go func() {
-		if err := n.signer.WatchAndHandleValidationRequestsLog(context.Background(), n); err != nil {
-			log.Errorf("Watch and handle ValidationRequest log: %v", err)
+		if err := n.signerNode.WatchAndHandleSignatureRequestsLog(context.Background(), n); err != nil {
+			log.Errorf("Watch and handle SigatureRequest log: %v", err)
 		}
 	}()
 
@@ -154,7 +153,7 @@ func (n *OracleNode) register(ipAddr string) error {
 	if err != nil {
 		return fmt.Errorf("new transactor: %w", err)
 	}
-	auth.Value = minStake;
+	auth.Value = minStake
 
 	if !isRegistered {
 
@@ -168,7 +167,7 @@ func (n *OracleNode) register(ipAddr string) error {
 
 func (n *OracleNode) Stop() {
 	n.server.Stop()
-	n.targetEthClient.Close()
-	n.sourceEthClient.Close()
+
+	n.EthClient.Close()
 	n.connectionManager.Close()
 }
