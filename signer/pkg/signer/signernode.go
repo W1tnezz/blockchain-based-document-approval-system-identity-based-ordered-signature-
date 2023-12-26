@@ -73,8 +73,7 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 	account := common.HexToAddress(hexAddress)
 
 	connectionManager := NewConnectionManager(oracleContractWrapper, account)
-	message := make([]byte, 0)
-	signers := make([]common.Address, 0)
+
 	signatures := make([]kyber.Point, 0)
 	R := make([]kyber.Point, 0)
 
@@ -88,8 +87,6 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 		connectionManager,
 		account,
 		privateKey, // 私钥
-		message,
-		signers,
 		signatures,
 		R,
 	)
