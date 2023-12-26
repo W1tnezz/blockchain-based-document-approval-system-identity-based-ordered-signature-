@@ -3,8 +3,8 @@ package signer
 import (
 	"context"
 	"crypto/ecdsa"
+	"crypto/sha256"
 	"fmt"
-	"generator/pkg/generator"
 	"math/big"
 	"net"
 
@@ -24,7 +24,7 @@ type OracleNode struct {
 	server            *grpc.Server
 	serverLis         net.Listener
 	EthClient         *ethclient.Client
-	oracleContract    *OracleContractWrapper
+	BatchVerifier     *BatchVerifier
 	suite             pairing.Suite
 	ecdsaPrivateKey   *ecdsa.PrivateKey
 	PrivateKey        kyber.Point
@@ -32,7 +32,7 @@ type OracleNode struct {
 	connectionManager *ConnectionManager
 	chainId           *big.Int
 	signerNode        *Signer // 执行签名方案
-
+	id                string
 }
 
 func NewOracleNode(c Config) (*OracleNode, error) {
@@ -50,11 +50,8 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 	// 区块链的ID
 	chainId := big.NewInt(c.Ethereum.ChainID)
 
-	oracleContract, err := NewOracleContract(common.HexToAddress(c.Contracts.OracleContractAddress), EthClient)
+	BatchVerifier, err := NewBatchVerifier(common.HexToAddress(c.Contracts.OracleContractAddress), EthClient)
 
-	oracleContractWrapper := &OracleContractWrapper{
-		OracleContract: oracleContract,
-	}
 	if err != nil {
 		return nil, fmt.Errorf("oracle contract: %v", err)
 	}
@@ -73,16 +70,18 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 	}
 	account := common.HexToAddress(hexAddress)
 
-	connectionManager := NewConnectionManager(oracleContractWrapper, account)
+	connectionManager := NewConnectionManager(BatchVerifier, account)
 
 	signatures := make([]kyber.Point, 0)
 	R := make([]kyber.Point, 0)
+
+	id := getRandstring(64)
 
 	privateKey := suite.G1().Point().Base() // 先随机成基础数值
 
 	Signer := NewSigner(
 		suite,
-		oracleContractWrapper,
+		BatchVerifier,
 		ecdsaPrivateKey,
 		EthClient,
 		connectionManager,
@@ -96,7 +95,7 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 		server:            server,
 		serverLis:         serverLis,
 		EthClient:         EthClient,
-		oracleContract:    oracleContractWrapper,
+		BatchVerifier:     BatchVerifier,
 		suite:             suite,
 		ecdsaPrivateKey:   ecdsaPrivateKey,
 		PrivateKey:        privateKey,
@@ -104,6 +103,7 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 		connectionManager: connectionManager,
 		chainId:           chainId,
 		signerNode:        Signer,
+		id:                id,
 	}
 
 	RegisterSignerServer(server, node)
@@ -112,16 +112,6 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 }
 
 func (n *OracleNode) Run() error {
-	// 创建连接
-	if err := n.connectionManager.InitConnections(); err != nil {
-		return fmt.Errorf("init connections: %w", err)
-	}
-
-	go func() {
-		if err := n.connectionManager.WatchAndHandleRegisterOracleNodeLog(context.Background()); err != nil {
-			log.Errorf("Watch and handle register oracle node log: %v", err)
-		}
-	}()
 
 	go func() {
 		if err := n.signerNode.WatchAndHandleSignatureRequestsLog(context.Background(), n); err != nil {
@@ -137,28 +127,21 @@ func (n *OracleNode) Run() error {
 }
 
 func (n *OracleNode) register(ipAddr string) error {
-	isRegistered, err := n.oracleContract.OracleNodeIsRegistered(nil, n.account)
-	if err != nil {
-		return fmt.Errorf("is registered: %w", err)
-	}
-
-	minStake, err := n.oracleContract.MINSTAKE(nil)
-	if err != nil {
-		return fmt.Errorf("min stake: %v", err)
-	}
 
 	auth, err := bind.NewKeyedTransactorWithChainID(n.ecdsaPrivateKey, n.chainId)
+
+	hash := sha256.New()
+	hash.Write([]byte(n.id))
+	idHash := hash.Sum(nil)
+	idPk := n.suite.G1().Point().Mul(n.suite.G1().Scalar().SetBytes(idHash), nil)
+	idPkBig, err := G1PointToBig(idPk)
 	if err != nil {
-		return fmt.Errorf("new transactor: %w", err)
+		log.Error("translate idPk to Big : %v", err)
 	}
-	auth.Value = minStake
+	_, err = n.BatchVerifier.Register(auth, ipAddr, n.id, idPkBig)
+	if err != nil {
+		return fmt.Errorf("register node: %w", err)
 
-	if !isRegistered {
-
-		_, err = n.oracleContract.RegisterOracleNode(auth, ipAddr, bSchnorr, big.NewInt(n.reputation))
-		if err != nil {
-			return fmt.Errorf("register iop node: %w", err)
-		}
 	}
 	return nil
 }

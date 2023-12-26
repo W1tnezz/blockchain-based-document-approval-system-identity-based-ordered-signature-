@@ -2,12 +2,20 @@ package signer
 
 import (
 	"crypto/ecdsa"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/big"
+
+	"math/rand"
+	"strings"
+	"time"
+
 	"github.com/ethereum/go-ethereum/crypto"
 	"go.dedis.ch/kyber/v3"
-	"math/big"
+	"go.dedis.ch/kyber/v3/pairing"
+	"go.dedis.ch/kyber/v3/util/random"
 )
 
 func AddressFromPrivateKey(privateKey *ecdsa.PrivateKey) (string, error) {
@@ -49,7 +57,6 @@ func G1PointToBig(point kyber.Point) ([2]*big.Int, error) {
 	}, nil
 }
 
-//
 func G2PointToBig(point kyber.Point) ([4]*big.Int, error) {
 	b, err := point.MarshalBinary()
 	if err != nil {
@@ -77,4 +84,49 @@ func ScalarToBig(scalar kyber.Scalar) (*big.Int, error) {
 		return nil, fmt.Errorf("invalid signature length")
 	}
 	return new(big.Int).SetBytes(bytes), nil
+}
+
+func sakai(suite pairing.Suite, message []byte, privateKey kyber.Point) (kyber.Point, kyber.Point) {
+	r := suite.G1().Scalar().Pick(random.New())
+	R := suite.G2().Point().Mul(r, nil)
+
+	// 构造消息的hash
+	hash := sha256.New()
+	hash.Write(message)
+	messageHash := hash.Sum(nil)
+	_hash := suite.G1().Point().Mul(suite.G1().Scalar().SetBytes(messageHash), nil)
+
+	signature := suite.G1().Point().Add(privateKey, suite.G1().Point().Mul(r, _hash))
+
+	return signature, R
+}
+
+func verifySakai(suite pairing.Suite, signature kyber.Point, message []byte, R kyber.Point, mpk kyber.Point, H_ID kyber.Point) bool {
+	// 构造消息的hash
+	hash := sha256.New()
+	hash.Write(message)
+	messageHash := hash.Sum(nil)
+	_hash := suite.G1().Point().Mul(suite.G1().Scalar().SetBytes(messageHash), nil)
+
+	left := suite.Pair(signature, suite.G2().Point().Base())
+
+	right := suite.GT().Point().Add(suite.Pair(H_ID, mpk), suite.Pair(_hash, R))
+
+	return left.Equal(right)
+}
+
+func getRandstring(length int) string {
+	if length < 1 {
+		return ""
+	}
+	char := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	charArr := strings.Split(char, "")
+	charlen := len(charArr)
+	ran := rand.New(rand.NewSource(time.Now().Unix()))
+
+	rchar := make([]string, 0, length)
+	for i := 1; i <= length; i++ {
+		rchar = append(rchar, charArr[ran.Intn(charlen)])
+	}
+	return strings.Join(rchar, "")
 }

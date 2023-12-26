@@ -3,7 +3,7 @@ package signer
 import (
 	"context"
 	"crypto/ecdsa"
-	"crypto/sha256"
+
 	"sync"
 	"time"
 
@@ -13,13 +13,12 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/pairing"
-	"go.dedis.ch/kyber/v3/util/random"
 )
 
 type Signer struct {
 	sync.RWMutex
 	suite             pairing.Suite
-	oracleContract    *OracleContract
+	BatchVerifier     *BatchVerifier
 	ecdsaPrivateKey   *ecdsa.PrivateKey
 	ethClient         *ethclient.Client
 	connectionManager *ConnectionManager
@@ -32,7 +31,7 @@ type Signer struct {
 
 func NewSigner(
 	suite pairing.Suite,
-	oracleContract *OracleContract,
+	BatchVerifier *BatchVerifier,
 	ecdsaPrivateKey *ecdsa.PrivateKey,
 	ethClient *ethclient.Client,
 	connectionManager *ConnectionManager,
@@ -45,7 +44,7 @@ func NewSigner(
 ) *Signer {
 	return &Signer{
 		suite:             suite,
-		oracleContract:    oracleContract,
+		BatchVerifier:     BatchVerifier,
 		ecdsaPrivateKey:   ecdsaPrivateKey,
 		ethClient:         ethClient,
 		connectionManager: connectionManager,
@@ -58,15 +57,14 @@ func NewSigner(
 }
 
 func (s *Signer) WatchAndHandleSignatureRequestsLog(ctx context.Context, o *OracleNode) error {
-	sink := make(chan *OracleContractValidationRequest) // 创建事件请求
+	sink := make(chan *BatchVerifierSign) // 创建事件请求
 	defer close(sink)
 
-	sub, err := s.oracleContract.WatchValidationRequest(
+	sub, err := s.BatchVerifier.WatchSign(
 		&bind.WatchOpts{
 			Context: context.Background(),
 		},
 		sink,
-		nil,
 	)
 	if err != nil {
 		return err
@@ -76,12 +74,12 @@ func (s *Signer) WatchAndHandleSignatureRequestsLog(ctx context.Context, o *Orac
 	for {
 		select {
 		case event := <-sink:
-			typ := ValidateRequest_Type(event.Typ)
-			log.Infof("Received SignatureRequest event for %s type with hash %s", typ, common.Hash(event.Hash))
+			typ := event.Typ
+			log.Infof("Received SignatureRequest event for %s type with message %s", typ, event.Message)
 
 			switch event.Typ {
 			case 1:
-				isSigner, _ := s.isSigner(event.signers) // 判断该节点是否是参与签名的节点
+				isSigner, _ := s.isSigner(event.SignOrder) // 判断该节点是否是参与签名的节点
 				if !isSigner {
 					continue
 				}
@@ -108,11 +106,15 @@ func (s *Signer) isSigner(signers []common.Address) (bool, error) {
 	return false, nil
 }
 
-func (s *Signer) orderlySakai(event *OracleContractValidationRequest) error {
+func (s *Signer) orderlySakai(event *BatchVerifierSign) error {
 	// 开始进行判断，是否是起始节点，如果是直接运行签名，如果不是，进入循环，直到上一个节点唤醒他
 	accountBig := s.account.Big()
-	if accountBig.Cmp(event.signers[0].Big()) == 0 { // 表示第一个与其相等，是起始节点
-		signature, R := s.sakai(event.message)
+	if accountBig.Cmp(event.SignOrder[0].Big()) == 0 { // 表示第一个与其相等，是起始节点
+		message := make([]byte, 0)
+		for _, b := range event.Message {
+			message = append(message, b)
+		}
+		signature, R := sakai(s.suite, message, s.privateKey)
 
 		signatureBytes, err := signature.MarshalBinary()
 		if err != nil {
@@ -123,7 +125,7 @@ func (s *Signer) orderlySakai(event *OracleContractValidationRequest) error {
 			log.Error("signature Translate Byte : %v", err)
 		}
 
-		conn, err := s.connectionManager.FindByAddress(event.signers[1])
+		conn, err := s.connectionManager.FindByAddress(event.SignOrder[1])
 		if err != nil {
 			log.Errorf("Find connection by address: %v", err)
 		}
@@ -145,20 +147,4 @@ func (s *Signer) orderlySakai(event *OracleContractValidationRequest) error {
 
 	}
 	return nil
-}
-
-
-func (s *Signer) sakai(message []byte) (kyber.Point, kyber.Point) {
-	r := s.suite.G1().Scalar().Pick(random.New())
-	R := s.suite.G2().Point().Mul(r, nil)
-
-	// 构造消息的hash
-	hash := sha256.New()
-	hash.Write(message)
-	messageHash := hash.Sum(nil)
-	_hash := s.suite.G1().Point().Mul(s.suite.G1().Scalar().SetBytes(messageHash), nil)
-
-	signature := s.suite.G1().Point().Add(s.privateKey, s.suite.G1().Point().Mul(r, _hash))
-
-	return signature, R
 }
