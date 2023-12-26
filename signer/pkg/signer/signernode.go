@@ -5,8 +5,10 @@ import (
 	"crypto/ecdsa"
 	"crypto/sha256"
 	"fmt"
+	"generator/pkg/generator"
 	"math/big"
 	"net"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -72,12 +74,42 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 
 	connectionManager := NewConnectionManager(BatchVerifier, account)
 
-	signatures := make([]kyber.Point, 0)
-	R := make([]kyber.Point, 0)
+	signatures := make([]byte, 0)
+	R := make([]byte, 0)
+
+	generatorIp := c.Generator
+
+	conn, err := grpc.Dial(generatorIp, grpc.WithInsecure())
+	if err != nil {
+		return nil, fmt.Errorf("dial %s: %v", generatorIp, err)
+	}
+
+	client := generator.NewPrivateKeyGeneratorClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	requestGetMasterPublicKey := &generator.GetMasterPublicKeyRequest{}
+
+	resultForMpk, err := client.GetMasterPublicKey(ctx, requestGetMasterPublicKey)
+	if err != nil {
+		log.Println("get Master PublicKey :", err)
+	}
+
+	mpk := suite.G2().Point().Null()
+	mpk.UnmarshalBinary(resultForMpk.MasterPublicKey)
 
 	id := getRandstring(64)
 
-	privateKey := suite.G1().Point().Base() // 先随机成基础数值
+	privateKey := suite.G1().Point().Null() // 先随机成基础数值
+
+	requestGetPrivateKey := &generator.GetPrivatekeyRequest{
+		Identity: id,
+	}
+	resultForPrivateKey, err := client.GetPrivateKey(ctx, requestGetPrivateKey)
+	if err != nil {
+		log.Println("get Private PublicKey :", err)
+	}
+	privateKey.UnmarshalBinary(resultForPrivateKey.PrivateKey)
+
+	cancel()
 
 	Signer := NewSigner(
 		suite,
@@ -87,8 +119,11 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 		connectionManager,
 		account,
 		privateKey, // 私钥
+		chainId,
 		signatures,
 		R,
+		id,
+		mpk,
 	)
 
 	node := &OracleNode{
@@ -129,6 +164,9 @@ func (n *OracleNode) Run() error {
 func (n *OracleNode) register(ipAddr string) error {
 
 	auth, err := bind.NewKeyedTransactorWithChainID(n.ecdsaPrivateKey, n.chainId)
+	if err != nil {
+		log.Println("NewKeyedTransactorWithChainID :", err)
+	}
 
 	hash := sha256.New()
 	hash.Write([]byte(n.id))
@@ -136,7 +174,7 @@ func (n *OracleNode) register(ipAddr string) error {
 	idPk := n.suite.G1().Point().Mul(n.suite.G1().Scalar().SetBytes(idHash), nil)
 	idPkBig, err := G1PointToBig(idPk)
 	if err != nil {
-		log.Error("translate idPk to Big : %v", err)
+		log.Println("translate idPk to Big : ", err)
 	}
 	_, err = n.BatchVerifier.Register(auth, ipAddr, n.id, idPkBig)
 	if err != nil {

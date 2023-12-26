@@ -5,5 +5,6 @@
   "ethereum": {
     "Address": "ws://127.0.0.1:8545",
     "chainID": 1337
-  }
+  },
+  "generator": "127.0.0.1:9999"
 }

@@ -1,33 +1,31 @@
 package signer
 
 import (
-	"context"
 	"fmt"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	log "github.com/sirupsen/logrus"
+
 	"google.golang.org/grpc"
 )
 
 type ConnectionManager struct {
 	sync.RWMutex
 	BatchVerifier *BatchVerifier
-	account        common.Address
-	connections    map[common.Address]*grpc.ClientConn
+	account       common.Address
+	connections   map[common.Address]*grpc.ClientConn
 }
 
 func NewConnectionManager(BatchVerifier *BatchVerifier, account common.Address) *ConnectionManager {
 	return &ConnectionManager{
 		BatchVerifier: BatchVerifier,
-		account:        account,
-		connections:    make(map[common.Address]*grpc.ClientConn),
+		account:       account,
+		connections:   make(map[common.Address]*grpc.ClientConn),
 	}
 }
 
 // 创建连接,使用数组保存,对每一个节点使用数组保存连接状态
-func (m *ConnectionManager) NewConnection(node  OracleContractOracleNode) (*grpc.ClientConn, error) {
+func (m *ConnectionManager) NewConnection(node BatchVerifierSigner) (*grpc.ClientConn, error) {
 	m.Lock()
 	// defer是延迟执行语句,当Windows界面的语句都执行完,才会执行defer,并且多个defer之间使用逆序执行顺序
 	defer m.Unlock()
@@ -40,7 +38,7 @@ func (m *ConnectionManager) NewConnection(node  OracleContractOracleNode) (*grpc
 	}
 	m.connections[node.Addr] = conn
 
-	log.Infof("New connection to %s with index %d and IP address %s", node.Addr, node.Index, node.IpAddr)
+	fmt.Errorf("New connection to %s with index %d and IP address %s", node.Addr, node.IpAddr)
 
 	return conn, nil
 }

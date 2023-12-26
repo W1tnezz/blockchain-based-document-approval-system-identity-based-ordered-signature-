@@ -2,9 +2,9 @@ package signer
 
 type Config struct {
 	BindAddress string
-	PrivateKey  string
 	Contracts   ContractsConfig
 	Ethereum    EthereumConfig
+	Generator   string
 }
 
 type ContractsConfig struct {

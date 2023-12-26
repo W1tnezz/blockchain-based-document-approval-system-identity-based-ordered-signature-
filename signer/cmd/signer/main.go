@@ -2,50 +2,51 @@ package main
 
 import (
 	"flag"
+	"log"
 	"os"
 	"os/signal"
 	"signer/pkg/signer"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	commonConfig := "./configs/common.json"
 	configFile := flag.String("c", "./configs/config.json", "filename of the config file")
 	flag.Parse()
-	
+
 	// var config signer.Config
 	var config signer.Config
 
 	// 公共配置
 	viper.SetConfigFile(*&commonConfig)
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Read config: %v", err)
+		log.Println("Read config: ", err)
 	}
 	if err := viper.Unmarshal(&config); err != nil {
-		log.Fatalf("Unmarshal common config into struct, %v", err)
+		log.Println("Unmarshal common config into struct, ", err)
 	}
 
 	// 节点配置
 	viper.SetConfigFile(*configFile)
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatalf("Read config: %v", err)
+		log.Println("Read config: ", err)
 	}
 	if err := viper.Unmarshal(&config); err != nil {
-		log.Fatalf("Unmarshal config into struct, %v", err)
+		log.Println("Unmarshal config into struct, ", err)
 	}
 
-	log.Infof("Loaded config file %s", *configFile)
+	log.Println("Loaded config file ", *configFile)
 
 	node, err := signer.NewOracleNode(config) // 根据config初始化node
 	if err != nil {
-		log.Fatalf("New oracle node: %v", err)
+		log.Println("New oracle node: ", err)
 	}
 
 	go func() {
 		if err := node.Run(); err != nil {
-			log.Fatalf("Run node: %v", err)
+			log.Println("Run node:", err)
 		} // 运行node
 	}()
 
