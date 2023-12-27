@@ -11,13 +11,14 @@ import (
 	"net"
 	"time"
 
+	"signer/internal/pkg/kyber/pairing/bn256"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/pairing"
-	"go.dedis.ch/kyber/v3/pairing/bn256"
 	"google.golang.org/grpc"
 )
 
@@ -93,8 +94,10 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 		log.Println("get Master PublicKey :", err)
 	}
 
-	mpk := suite.G2().Point().Null()
+	mpk := suite.G2().Point()
 	mpk.UnmarshalBinary(resultForMpk.MasterPublicKey)
+
+	log.Println(mpk)
 
 	id := getRandstring(64)
 

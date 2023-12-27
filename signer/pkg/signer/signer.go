@@ -126,34 +126,36 @@ func (s *Signer) isSigner(SignOrders []common.Address) (bool, error) {
 
 func (s *Signer) orderlySakai(event *BatchVerifierSign) error {
 	// 开始进行判断，是否是起始节点，如果是直接运行签名，如果不是，进入循环，直到上一个节点唤醒他
-	accountBig := s.account.Big()
+
 	message := make([]byte, 0)
 	for _, b := range event.Message {
 		message = append(message, b)
 	}
 	s.message = message // 暂时存储初始消息
 
-	if accountBig.Cmp(event.SignOrder[0].Big()) == 0 { // 表示第一个与其相等，是起始节点
+	if s.lastSignerIndex == -1 { // 表示第一个与其相等，是起始节点
 
-		signature, R := sakai(s.suite, message, s.privateKey)
+		s.makeCurrentSakai(event.SignOrder, message)
 
-		if verifySakai(s.suite, signature, message, R, s.mpk, s.id) {
-			log.Println("当前产生的签名通过")
-		}
+		// signature, R := sakai(s.suite, message, s.privateKey)
 
-		signatureBytes, err := signature.MarshalBinary()
-		if err != nil {
-			log.Println("signature Translate Byte : ", err)
-		}
-		RBytes, err := R.MarshalBinary()
-		if err != nil {
-			log.Println("signature Translate Byte :", err)
-		}
-		s.signatures = signatureBytes
-		s.R = RBytes
+		// if verifySakai(s.suite, signature, message, R, s.mpk, s.id) {
+		// 	log.Println("当前产生的签名通过")
+		// }
 
-		log.Println("当前的产生的sakai签名：", signature, R, message)
-		s.SendSignatureToNext(event.SignOrder[1], signatureBytes, RBytes)
+		// signatureBytes, err := signature.MarshalBinary()
+		// if err != nil {
+		// 	log.Println("signature Translate Byte : ", err)
+		// }
+		// RBytes, err := R.MarshalBinary()
+		// if err != nil {
+		// 	log.Println("signature Translate Byte :", err)
+		// }
+		// s.signatures = signatureBytes
+		// s.R = RBytes
+
+		// log.Println("当前的产生的sakai签名：", signature, R, message)
+		// s.SendSignatureToNext(event.SignOrder[1], signatureBytes, RBytes)
 
 	} else {
 		// 不是第一个节点，需要被唤醒
@@ -212,9 +214,9 @@ func (s *Signer) handleSakaiSignature(SignOrder []common.Address, message []byte
 	// 签名是G1的，R是G2的
 	lastSignatureByte := s.signatures[len(s.signatures)-G1PointSize:]
 	lastRByte := s.R[len(s.R)-G2PointSize:]
-	lastSignature := s.suite.G1().Point().Null()
+	lastSignature := s.suite.G1().Point()
 	lastSignature.UnmarshalBinary(lastSignatureByte)
-	lastR := s.suite.G2().Point().Null()
+	lastR := s.suite.G2().Point()
 	lastR.UnmarshalBinary(lastRByte)
 
 	lastMessage := message
@@ -243,6 +245,9 @@ func (s *Signer) handleSakaiSignature(SignOrder []common.Address, message []byte
 func (s *Signer) makeCurrentSakai(SignOrder []common.Address, message []byte) {
 	// 构造当前签名的结果
 	signature, R := sakai(s.suite, message, s.privateKey)
+
+	log.Println("current sakai :", signature, R)
+
 	signatureByte, err := signature.MarshalBinary()
 
 	if err != nil {
@@ -287,9 +292,9 @@ func (s *Signer) makeSubmitSignature(SignOrder []common.Address) ([4]*big.Int, [
 
 	for i := 0; i < len(s.signatures)/G1PointSize; i++ {
 		siByte := s.signatures[i*G1PointSize : (i+1)*G1PointSize]
-		si := s.suite.G1().Point().Null()
+		si := s.suite.G1().Point()
 		si.UnmarshalBinary(siByte)
-
+		log.Println(si)
 		textSignatures = append(textSignatures, si)
 
 		siBig, err := G1PointToBig(si)
@@ -301,11 +306,11 @@ func (s *Signer) makeSubmitSignature(SignOrder []common.Address) ([4]*big.Int, [
 
 	for i := 0; i < len(s.R)/G2PointSize; i++ {
 		RiByte := s.R[i*G2PointSize : (i+1)*G2PointSize]
-		Ri := s.suite.G2().Point().Null()
+		Ri := s.suite.G2().Point()
 		Ri.UnmarshalBinary(RiByte)
 
 		textR = append(textR, Ri)
-
+		log.Println(Ri)
 		RiBig, err := G2PointToBig(Ri)
 		if err != nil {
 			log.Println("Ri traslate to big", err)

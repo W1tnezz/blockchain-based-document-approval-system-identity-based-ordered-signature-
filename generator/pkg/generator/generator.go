@@ -6,6 +6,8 @@ import (
 	"log"
 	"net"
 
+	"generator/internal/pkg/kyber/pairing/bn256"
+
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/pairing"
 	grpc "google.golang.org/grpc"
@@ -26,12 +28,12 @@ type Generator struct {
 func (g *Generator) GetMasterPublicKey(ctx context.Context, req *GetMasterPublicKeyRequest) (*GetMasterPublicKeyResponse, error) {
 	pr, ok := peer.FromContext(ctx)
 	if !ok {
-        log.Fatalf("[getClinetIP] invoke FromContext() failed")
-    }
+		log.Fatalf("[getClinetIP] invoke FromContext() failed")
+	}
 	log.Println("Handle get master public key request from " + pr.Addr.String())
 	log.Println("Master public key: " + g.masterPublicKey.String())
 	rsp, err := g.masterPublicKey.MarshalBinary()
-	if err != nil{
+	if err != nil {
 		log.Fatal("Marshal master public key error: ", err)
 		return nil, err
 	}
@@ -42,22 +44,21 @@ func (g *Generator) GetMasterPublicKey(ctx context.Context, req *GetMasterPublic
 func (g *Generator) GetPrivateKey(ctx context.Context, req *GetPrivatekeyRequest) (*GetPrivatekeyResponse, error) {
 	pr, ok := peer.FromContext(ctx)
 	if !ok {
-        log.Fatalf("[getClinetIP] invoke FromContext() failed")
-    }
+		log.Fatalf("[getClinetIP] invoke FromContext() failed")
+	}
 
 	identity := req.Identity
 	log.Println("Handle get private key request from " + pr.Addr.String() + ", identity: " + identity)
-	
 
 	h := sha256.New()
-    h.Write([]byte(identity))
+	h.Write([]byte(identity))
 	identityHashScalar := g.suite.G1().Scalar().SetBytes(h.Sum(nil))
 	privateKey := g.suite.G1().Point().Base()
 	privateKey = g.suite.G1().Point().Mul(identityHashScalar, privateKey)
 	privateKey = g.suite.G1().Point().Mul(g.masterPrivateKey, privateKey)
 	log.Println("User private key: " + privateKey.String())
 	rsp, err := privateKey.MarshalBinary()
-	if err != nil{
+	if err != nil {
 		log.Fatal("Marshal private key error: ", err)
 		return nil, err
 	}
@@ -70,9 +71,10 @@ func (g *Generator) mustEmbedUnimplementedPrivateKeyGeneratorServer() {
 }
 
 func NewGenerator(
-	suite pairing.Suite,
+
 	port string,
 ) *Generator {
+	suite := bn256.NewSuite()
 	masterPrivateKey := suite.G2().Scalar().Pick(suite.RandomStream())
 	masterPublicKey := suite.G2().Point().Base()
 	masterPublicKey = suite.G2().Point().Mul(masterPrivateKey, masterPublicKey)
@@ -86,7 +88,7 @@ func NewGenerator(
 
 func (g *Generator) LaunchGrpcServer() {
 	log.Println("Initialize private key generator")
-	lis, err := net.Listen("tcp", "127.0.0.1:" + g.port)
+	lis, err := net.Listen("tcp", "127.0.0.1:"+g.port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -109,7 +111,7 @@ func (g *Generator) LaunchGrpcServer() {
 	}
 }
 
-func (g *Generator) Close(){
+func (g *Generator) Close() {
 	g.server.Stop()
 	g.listener.Close()
 	log.Println("Close grpc server and release port")

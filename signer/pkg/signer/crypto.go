@@ -128,7 +128,7 @@ func verifySakaiBatch(suite pairing.Suite, signatures []kyber.Point, R []kyber.P
 	s := suite.G1().Point().Null()
 	H_ID := suite.G1().Point().Null()
 
-	rightHalf := suite.GT().Point().Null()
+	rightHalf := suite.GT().Point()
 
 	for i, _ := range signatures {
 		p := suite.G1().Scalar().Pick(random.New())
@@ -166,6 +166,10 @@ func verifySakaiBatch(suite pairing.Suite, signatures []kyber.Point, R []kyber.P
 		_hash = suite.G1().Point().Mul(p, _hash)
 
 		tmp := suite.Pair(_hash, R[i])
+		if i == 0 {
+			rightHalf = tmp
+			continue
+		}
 		rightHalf = suite.GT().Point().Add(rightHalf, tmp)
 
 	}

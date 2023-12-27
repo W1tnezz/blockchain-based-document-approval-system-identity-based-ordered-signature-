@@ -30,12 +30,6 @@ contract BatchVerifier {
 
 	event Sign(SignType typ, bytes32 message, address[] signOrder);
 
-	// generator of G1
-	uint256 private constant G1_GEN_X = 
-	    0x0000000000000000000000000000000000000000000000000000000000000001;
-	uint256 private constant G1_GEN_Y = 
-	    0x8fb501e34aa387f9aa6fecb86184dc21ee5b88d120b5b59e185cac6c5e089665;
-
 	// generator of G2
 	uint256 private constant G2_GEN_X_RE =
         0x198E9393920D483A7260BFB731FB5D25F1AA493335A9E71297E485B7AEF312C2;
@@ -113,7 +107,7 @@ contract BatchVerifier {
 		// cal H(mi)
 		uint256 firstX;
 		uint256 firstY;
-		(firstX, firstY) = BN256G1.mulPoint([G1_GEN_X, G1_GEN_Y, uint256(sha256(abi.encodePacked(message)))]);
+		(firstX, firstY) = BN256G1.mulPoint([BN256G1.GX, BN256G1.GY, uint256(sha256(abi.encodePacked(message)))]);
 
 		uint256[2] memory first;
 		(first[0], first[1]) = BN256G1.mulPoint([firstX, firstY, randoms[0]]);
@@ -125,7 +119,7 @@ contract BatchVerifier {
 			bytes memory t = abi.encodePacked(message, signatures[i - 1][0]);
 			t = abi.encodePacked(t, signatures[i - 1][1]);
 			bytes32 res = sha256(t);
-			(tempX, tempY) = BN256G1.mulPoint([G1_GEN_X, G1_GEN_Y, uint256(res)]);
+			(tempX, tempY) = BN256G1.mulPoint([BN256G1.GX, BN256G1.GY, uint256(res)]);
 
 			uint256[2] memory hashPoint;
 			(hashPoint[0], hashPoint[1]) = BN256G1.mulPoint([tempX, tempY, randoms[i]]);
