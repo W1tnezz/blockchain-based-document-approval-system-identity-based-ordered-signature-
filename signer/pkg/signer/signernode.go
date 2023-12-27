@@ -5,13 +5,13 @@ import (
 	"crypto/ecdsa"
 	"crypto/sha256"
 	"fmt"
+	"signer/pkg/kyber/pairing/bn256"
+
 	"generator/pkg/generator"
 	"log"
 	"math/big"
 	"net"
 	"time"
-
-	"signer/internal/pkg/kyber/pairing/bn256"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"

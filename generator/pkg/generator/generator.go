@@ -5,11 +5,11 @@ import (
 	"crypto/sha256"
 	"log"
 	"net"
-
-	"generator/internal/pkg/kyber/pairing/bn256"
+	"signer/pkg/kyber/pairing/bn256"
 
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/pairing"
+
 	grpc "google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/reflection"
