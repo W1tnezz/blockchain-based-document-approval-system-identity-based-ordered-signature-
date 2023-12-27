@@ -3,7 +3,6 @@ package signer
 import (
 	"context"
 	"crypto/ecdsa"
-	"crypto/sha256"
 	"math/big"
 
 	"log"
@@ -28,7 +27,8 @@ type Signer struct {
 	account           common.Address
 	chainId           *big.Int
 	privateKey        kyber.Point
-	nextSigner        common.Address
+	nextSignerIndex   int
+	lastSignerIndex   int
 	signatures        []byte // 这个是当前所有的，然后最后一个上一个签名者的签名 ， 当产生自己的时候，直接并上去
 	R                 []byte // 这个是当前所有的，然后最后一个上一个签名者的签名 ， 当产生自己的时候，直接并上去
 	id                string
@@ -109,10 +109,13 @@ func (s *Signer) isSigner(SignOrders []common.Address) (bool, error) {
 	accountBig := s.account.Big()
 	for i, account := range SignOrders {
 		if account.Big().Cmp(accountBig) == 0 { // 表示两个地址转换成的大整数相等
+
+			s.lastSignerIndex = i - 1
+
 			if i+1 < len(SignOrders) {
-				s.nextSigner = SignOrders[i+1]
+				s.nextSignerIndex = i + 1
 			} else {
-				s.nextSigner = SignOrders[0]
+				s.nextSignerIndex = 0
 			}
 			return true, nil
 		}
@@ -130,6 +133,10 @@ func (s *Signer) orderlySakai(event *BatchVerifierSign) error {
 	if accountBig.Cmp(event.SignOrder[0].Big()) == 0 { // 表示第一个与其相等，是起始节点
 
 		signature, R := sakai(s.suite, message, s.privateKey)
+
+		if verifySakai(s.suite, signature, message, R, s.mpk, s.id) {
+			log.Println("当前产生的签名通过")
+		}
 
 		signatureBytes, err := signature.MarshalBinary()
 		if err != nil {
@@ -161,7 +168,7 @@ func (s *Signer) orderlySakai(event *BatchVerifierSign) error {
 				time.Sleep(1000 * time.Millisecond)
 			}
 		}
-		s.handleSakaiSignature(event.SignOrder[0], message)
+		s.handleSakaiSignature(event.SignOrder, message)
 	}
 	return nil
 }
@@ -195,7 +202,7 @@ func (s *Signer) SendSignatureToNext(nextSigner common.Address, signature []byte
 	cancel()
 }
 
-func (s *Signer) handleSakaiSignature(startNode common.Address, message []byte) {
+func (s *Signer) handleSakaiSignature(SignOrder []common.Address, message []byte) {
 	G1PointSize := s.suite.G1().Point().MarshalSize()
 	G2PointSize := s.suite.G2().Point().MarshalSize()
 
@@ -216,22 +223,21 @@ func (s *Signer) handleSakaiSignature(startNode common.Address, message []byte) 
 		lastMessage = append(lastMessage, lastLastSignature...)
 		lastMessage = append(lastMessage, lastLastR...)
 	}
-	hash := sha256.New()
-	hash.Write([]byte(s.id))
-	idHash := hash.Sum(nil)
-	idPk := s.suite.G1().Point().Mul(s.suite.G1().Scalar().SetBytes(idHash), nil)
 
 	log.Println("上一个sakai：", lastSignature, lastR, lastMessage)
-	if verifySakai(s.suite, lastSignature, lastMessage, lastR, s.mpk, idPk) {
+
+	lastNode, _ := s.BatchVerifier.GetSignerByAddress(nil, SignOrder[s.lastSignerIndex])
+
+	if verifySakai(s.suite, lastSignature, lastMessage, lastR, s.mpk, lastNode.Identity) {
 		message = append(message, lastSignatureByte...)
 		message = append(message, lastRByte...)
-		s.makeCurrentSakai(startNode, message)
+		s.makeCurrentSakai(SignOrder, message)
 	} else {
 		log.Println("签名未通过", s.id)
 	}
 }
 
-func (s *Signer) makeCurrentSakai(startNode common.Address, message []byte) {
+func (s *Signer) makeCurrentSakai(SignOrder []common.Address, message []byte) {
 	// 构造当前签名的结果
 	signature, R := sakai(s.suite, message, s.privateKey)
 	signatureByte, err := signature.MarshalBinary()
@@ -247,7 +253,7 @@ func (s *Signer) makeCurrentSakai(startNode common.Address, message []byte) {
 	s.signatures = append(s.signatures, signatureByte...)
 	s.R = append(s.R, RByte...)
 
-	if s.nextSigner.Big().Cmp(startNode.Big()) == 0 { // 说明当前是最后一个节点
+	if s.nextSignerIndex == 0 { // 说明当前是最后一个节点
 		masterPubKey, signatures, setofR := s.makeSubmitSignature()
 		auth, err := bind.NewKeyedTransactorWithChainID(s.ecdsaPrivateKey, s.chainId)
 		if err != nil {
@@ -258,7 +264,7 @@ func (s *Signer) makeCurrentSakai(startNode common.Address, message []byte) {
 			log.Println("SubmitBatch1 :", err)
 		}
 	} else {
-		s.SendSignatureToNext(s.nextSigner, s.signatures, s.R)
+		s.SendSignatureToNext(SignOrder[s.nextSignerIndex], s.signatures, s.R)
 	}
 }
 

@@ -21,7 +21,7 @@ import (
 func AddressFromPrivateKey(privateKey *ecdsa.PrivateKey) (string, error) {
 	publicKey := privateKey.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	
+
 	if !ok {
 		return "", fmt.Errorf("could not cast to public key ecdsa")
 	}
@@ -102,7 +102,14 @@ func sakai(suite pairing.Suite, message []byte, privateKey kyber.Point) (kyber.P
 	return signature, R
 }
 
-func verifySakai(suite pairing.Suite, signature kyber.Point, message []byte, R kyber.Point, mpk kyber.Point, H_ID kyber.Point) bool {
+func verifySakai(suite pairing.Suite, signature kyber.Point, message []byte, R kyber.Point, mpk kyber.Point, id string) bool {
+
+	h := sha256.New()
+	h.Write([]byte(id))
+	identityHashScalar := suite.G1().Scalar().SetBytes(h.Sum(nil))
+	H_ID := suite.G1().Point().Base()
+	H_ID = suite.G1().Point().Mul(identityHashScalar, H_ID)
+
 	// 构造消息的hash
 	hash := sha256.New()
 	hash.Write(message)
