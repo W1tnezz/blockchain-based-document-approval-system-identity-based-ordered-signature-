@@ -59,6 +59,7 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 		return nil, fmt.Errorf("oracle contract: %v", err)
 	}
 
+	// suite := bn256.NewSuite()
 	suite := bn256.NewSuite()
 
 	ecdsaPrivateKey, err := crypto.HexToECDSA(c.Ethereum.PrivateKey)
@@ -174,7 +175,8 @@ func (n *OracleNode) register(ipAddr string) error {
 	hash := sha256.New()
 	hash.Write([]byte(n.id))
 	idHash := hash.Sum(nil)
-	idPk := n.suite.G1().Point().Mul(n.suite.G1().Scalar().SetBytes(idHash), nil)
+	idPk := n.suite.G1().Point().Base()
+	idPk = n.suite.G1().Point().Mul(n.suite.G1().Scalar().SetBytes(idHash), idPk)
 	idPkBig, err := G1PointToBig(idPk)
 	if err != nil {
 		log.Println("translate idPk to Big : ", err)

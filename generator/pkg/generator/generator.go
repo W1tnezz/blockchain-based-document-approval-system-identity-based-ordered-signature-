@@ -57,6 +57,7 @@ func (g *Generator) GetPrivateKey(ctx context.Context, req *GetPrivatekeyRequest
 	privateKey = g.suite.G1().Point().Mul(identityHashScalar, privateKey)
 	privateKey = g.suite.G1().Point().Mul(g.masterPrivateKey, privateKey)
 	log.Println("User private key: " + privateKey.String())
+
 	rsp, err := privateKey.MarshalBinary()
 	if err != nil {
 		log.Fatal("Marshal private key error: ", err)
@@ -78,6 +79,9 @@ func NewGenerator(
 	masterPrivateKey := suite.G2().Scalar().Pick(suite.RandomStream())
 	masterPublicKey := suite.G2().Point().Base()
 	masterPublicKey = suite.G2().Point().Mul(masterPrivateKey, masterPublicKey)
+
+	log.Println(suite.G2().Point().Base().String())
+
 	return &Generator{
 		suite:            suite,
 		masterPrivateKey: masterPrivateKey,

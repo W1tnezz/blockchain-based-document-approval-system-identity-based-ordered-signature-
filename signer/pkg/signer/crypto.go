@@ -151,12 +151,12 @@ func verifySakaiBatch(suite pairing.Suite, signatures []kyber.Point, R []kyber.P
 			if err != nil {
 				log.Println("translate lastSignature , ", err)
 			}
-			lastRByte, err := R[i-1].MarshalBinary()
+			// lastRByte, err := R[i-1].MarshalBinary()
 			if err != nil {
 				log.Println("translate LatsR , ", err)
 			}
 			tmpMessage = append(tmpMessage, lastSignatureByte...)
-			tmpMessage = append(tmpMessage, lastRByte...)
+			// tmpMessage = append(tmpMessage, lastRByte...)
 		}
 
 		hash := sha256.New()

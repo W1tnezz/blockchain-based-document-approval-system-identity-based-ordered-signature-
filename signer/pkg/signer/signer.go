@@ -224,9 +224,9 @@ func (s *Signer) handleSakaiSignature(SignOrder []common.Address, message []byte
 	// 此时集合中收集了两个以上的签名
 	if len(s.signatures) >= 2*G1PointSize {
 		lastLastSignature := s.signatures[len(s.signatures)-2*G1PointSize : len(s.signatures)-G1PointSize]
-		lastLastR := s.R[len(s.R)-2*G2PointSize : len(s.R)-G2PointSize]
+		// lastLastR := s.R[len(s.R)-2*G2PointSize : len(s.R)-G2PointSize]
 		lastMessage = append(lastMessage, lastLastSignature...)
-		lastMessage = append(lastMessage, lastLastR...)
+		// lastMessage = append(lastMessage, lastLastR...)
 	}
 
 	log.Println("上一个sakai：", lastSignature, lastR, lastMessage)
@@ -235,7 +235,7 @@ func (s *Signer) handleSakaiSignature(SignOrder []common.Address, message []byte
 
 	if verifySakai(s.suite, lastSignature, lastMessage, lastR, s.mpk, lastNode.Identity) {
 		message = append(message, lastSignatureByte...)
-		message = append(message, lastRByte...)
+		// message = append(message, lastRByte...)
 		s.makeCurrentSakai(SignOrder, message)
 	} else {
 		log.Println("签名未通过", s.id)
@@ -268,9 +268,12 @@ func (s *Signer) makeCurrentSakai(SignOrder []common.Address, message []byte) {
 			log.Println("NewKeyedTransactorWithChainID :", err)
 		}
 		_, err = s.BatchVerifier.SubmitBatch1(auth, masterPubKey, signatures, setofR)
+
 		if err != nil {
-			log.Println("SubmitBatch1 :", err)
+			log.Println("SubmitBatch1 has err :", err)
 		}
+
+		log.Println("SubmitBatch1 success")
 	} else {
 		s.SendSignatureToNext(SignOrder[s.nextSignerIndex], s.signatures, s.R)
 	}
