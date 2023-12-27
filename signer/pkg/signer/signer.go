@@ -15,6 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/pairing"
+	"google.golang.org/grpc"
 )
 
 type Signer struct {
@@ -141,6 +142,7 @@ func (s *Signer) orderlySakai(event *BatchVerifierSign) error {
 		s.signatures = signatureBytes
 		s.R = RBytes
 
+		log.Println("当前的产生的sakai签名：", signature, R, message)
 		s.SendSignatureToNext(event.SignOrder[1], signatureBytes, RBytes)
 
 	} else {
@@ -169,7 +171,13 @@ func (s *Signer) receiveSakaiSignature(signature []byte, R []byte) {
 	s.R = R
 }
 func (s *Signer) SendSignatureToNext(nextSigner common.Address, signature []byte, R []byte) {
-	conn, err := s.connectionManager.FindByAddress(nextSigner)
+	log.Println("nextSigner is : ", nextSigner)
+	node, err := s.BatchVerifier.GetSignerByAddress(nil, nextSigner)
+	if err != nil {
+		log.Println("get node :", err)
+	}
+	conn, err := grpc.Dial(node.IpAddr, grpc.WithInsecure())
+
 	if err != nil {
 		log.Println("Find connection by address: ", err)
 	}
@@ -213,6 +221,7 @@ func (s *Signer) handleSakaiSignature(startNode common.Address, message []byte) 
 	idHash := hash.Sum(nil)
 	idPk := s.suite.G1().Point().Mul(s.suite.G1().Scalar().SetBytes(idHash), nil)
 
+	log.Println("上一个sakai：", lastSignature, lastR, lastMessage)
 	if verifySakai(s.suite, lastSignature, lastMessage, lastR, s.mpk, idPk) {
 		message = append(message, lastSignatureByte...)
 		message = append(message, lastRByte...)
