@@ -97,6 +97,7 @@ contract BatchVerifier {
 		for(uint i = 0; i < signatures.length; i++){
 			uint256 tempX;
 			uint256 tempY;
+			require(BN256G1.isOnCurve(signatures[i]), "Not on curve");
 			(tempX, tempY) = BN256G1.mulPoint([signatures[i][0], signatures[i][1], randoms[i]]);
 			(Sx, Sy) = BN256G1.addPoint([Sx, Sy, tempX, tempY]);
 		}
