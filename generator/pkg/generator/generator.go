@@ -29,6 +29,7 @@ func (g *Generator) GetMasterPublicKey(ctx context.Context, req *GetMasterPublic
         log.Fatalf("[getClinetIP] invoke FromContext() failed")
     }
 	log.Println("Handle get master public key request from " + pr.Addr.String())
+	log.Println("Master public key: " + g.masterPublicKey.String())
 	rsp, err := g.masterPublicKey.MarshalBinary()
 	if err != nil{
 		log.Fatal("Marshal master public key error: ", err)
@@ -46,12 +47,15 @@ func (g *Generator) GetPrivateKey(ctx context.Context, req *GetPrivatekeyRequest
 
 	identity := req.Identity
 	log.Println("Handle get private key request from " + pr.Addr.String() + ", identity: " + identity)
+	
 
 	h := sha256.New()
     h.Write([]byte(identity))
 	identityHashScalar := g.suite.G1().Scalar().SetBytes(h.Sum(nil))
 	privateKey := g.suite.G1().Point().Base()
 	privateKey = g.suite.G1().Point().Mul(identityHashScalar, privateKey)
+	privateKey = g.suite.G1().Point().Mul(g.masterPrivateKey, privateKey)
+	log.Println("User private key: " + privateKey.String())
 	rsp, err := privateKey.MarshalBinary()
 	if err != nil{
 		log.Fatal("Marshal private key error: ", err)
