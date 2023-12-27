@@ -33,6 +33,7 @@ type Signer struct {
 	R                 []byte // 这个是当前所有的，然后最后一个上一个签名者的签名 ， 当产生自己的时候，直接并上去
 	id                string
 	mpk               kyber.Point
+	message           []byte
 }
 
 func NewSigner(
@@ -130,6 +131,8 @@ func (s *Signer) orderlySakai(event *BatchVerifierSign) error {
 	for _, b := range event.Message {
 		message = append(message, b)
 	}
+	s.message = message // 暂时存储初始消息
+
 	if accountBig.Cmp(event.SignOrder[0].Big()) == 0 { // 表示第一个与其相等，是起始节点
 
 		signature, R := sakai(s.suite, message, s.privateKey)
@@ -254,7 +257,7 @@ func (s *Signer) makeCurrentSakai(SignOrder []common.Address, message []byte) {
 	s.R = append(s.R, RByte...)
 
 	if s.nextSignerIndex == 0 { // 说明当前是最后一个节点
-		masterPubKey, signatures, setofR := s.makeSubmitSignature()
+		masterPubKey, signatures, setofR := s.makeSubmitSignature(SignOrder)
 		auth, err := bind.NewKeyedTransactorWithChainID(s.ecdsaPrivateKey, s.chainId)
 		if err != nil {
 			log.Println("NewKeyedTransactorWithChainID :", err)
@@ -268,7 +271,7 @@ func (s *Signer) makeCurrentSakai(SignOrder []common.Address, message []byte) {
 	}
 }
 
-func (s *Signer) makeSubmitSignature() ([4]*big.Int, [][2]*big.Int, [][4]*big.Int) {
+func (s *Signer) makeSubmitSignature(SignOrder []common.Address) ([4]*big.Int, [][2]*big.Int, [][4]*big.Int) {
 	masterPubKey, err := G2PointToBig(s.mpk)
 	if err != nil {
 		log.Println("mpk translate to big", err)
@@ -279,10 +282,16 @@ func (s *Signer) makeSubmitSignature() ([4]*big.Int, [][2]*big.Int, [][4]*big.In
 	signatures := make([][2]*big.Int, 0)
 	setofR := make([][4]*big.Int, 0)
 
+	textSignatures := make([]kyber.Point, 0)
+	textR := make([]kyber.Point, 0)
+
 	for i := 0; i < len(s.signatures)/G1PointSize; i++ {
 		siByte := s.signatures[i*G1PointSize : (i+1)*G1PointSize]
 		si := s.suite.G1().Point().Null()
 		si.UnmarshalBinary(siByte)
+
+		textSignatures = append(textSignatures, si)
+
 		siBig, err := G1PointToBig(si)
 		if err != nil {
 			log.Println("si traslate to big", err)
@@ -294,12 +303,23 @@ func (s *Signer) makeSubmitSignature() ([4]*big.Int, [][2]*big.Int, [][4]*big.In
 		RiByte := s.R[i*G2PointSize : (i+1)*G2PointSize]
 		Ri := s.suite.G2().Point().Null()
 		Ri.UnmarshalBinary(RiByte)
+
+		textR = append(textR, Ri)
+
 		RiBig, err := G2PointToBig(Ri)
 		if err != nil {
 			log.Println("Ri traslate to big", err)
 		}
 		setofR = append(setofR, RiBig)
 	}
+	ids := make([]string, 0)
+
+	for _, addr := range SignOrder {
+		node, _ := s.BatchVerifier.GetSignerByAddress(nil, addr)
+		ids = append(ids, node.Identity)
+	}
+
+	log.Println(verifySakaiBatch(s.suite, textSignatures, textR, s.mpk, s.message, ids))
 
 	return masterPubKey, signatures, setofR
 

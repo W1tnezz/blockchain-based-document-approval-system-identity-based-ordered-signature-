@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 	"math/big"
 
 	"math/rand"
@@ -121,6 +122,58 @@ func verifySakai(suite pairing.Suite, signature kyber.Point, message []byte, R k
 	right := suite.GT().Point().Add(suite.Pair(H_ID, mpk), suite.Pair(_hash, R))
 
 	return left.Equal(right)
+}
+
+func verifySakaiBatch(suite pairing.Suite, signatures []kyber.Point, R []kyber.Point, mpk kyber.Point, message []byte, ids []string) bool {
+	s := suite.G1().Point().Null()
+	H_ID := suite.G1().Point().Null()
+
+	rightHalf := suite.GT().Point().Null()
+
+	for i, _ := range signatures {
+		p := suite.G1().Scalar().Pick(random.New())
+
+		si := suite.G1().Point().Mul(p, signatures[i])
+		s = suite.G1().Point().Add(si, s)
+
+		h := sha256.New()
+		h.Write([]byte(ids[i]))
+		identityHashScalar := suite.G1().Scalar().SetBytes(h.Sum(nil))
+		h_id := suite.G1().Point().Base()
+		h_id = suite.G1().Point().Mul(identityHashScalar, h_id)
+		h_id = suite.G1().Point().Mul(p, h_id)
+		H_ID = suite.G1().Point().Add(H_ID, h_id)
+
+		tmpMessage := message
+
+		if i != 0 {
+			lastSignatureByte, err := signatures[i-1].MarshalBinary()
+			if err != nil {
+				log.Println("translate lastSignature , ", err)
+			}
+			lastRByte, err := R[i-1].MarshalBinary()
+			if err != nil {
+				log.Println("translate LatsR , ", err)
+			}
+			tmpMessage = append(tmpMessage, lastSignatureByte...)
+			tmpMessage = append(tmpMessage, lastRByte...)
+		}
+
+		hash := sha256.New()
+		hash.Write(tmpMessage)
+		messageHash := hash.Sum(nil)
+		_hash := suite.G1().Point().Mul(suite.G1().Scalar().SetBytes(messageHash), nil)
+		_hash = suite.G1().Point().Mul(p, _hash)
+
+		tmp := suite.Pair(_hash, R[i])
+		rightHalf = suite.GT().Point().Add(rightHalf, tmp)
+
+	}
+
+	left := suite.Pair(s, suite.G2().Point().Base())
+	right := suite.GT().Point().Add(suite.Pair(H_ID, mpk), rightHalf)
+	return left.Equal(right)
+
 }
 
 func getRandstring(length int) string {
