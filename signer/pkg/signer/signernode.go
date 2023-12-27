@@ -17,25 +17,21 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/pairing"
 	"google.golang.org/grpc"
 )
 
 type OracleNode struct {
 	UnsafeSignerServer
-	server            *grpc.Server
-	serverLis         net.Listener
-	EthClient         *ethclient.Client
-	BatchVerifier     *BatchVerifier
-	suite             pairing.Suite
-	ecdsaPrivateKey   *ecdsa.PrivateKey
-	PrivateKey        kyber.Point
-	account           common.Address
-	connectionManager *ConnectionManager
-	chainId           *big.Int
-	signerNode        *Signer // 执行签名方案
-	id                string
+	server          *grpc.Server
+	serverLis       net.Listener
+	EthClient       *ethclient.Client
+	BatchVerifier   *BatchVerifier
+	suite           pairing.Suite
+	ecdsaPrivateKey *ecdsa.PrivateKey
+	account         common.Address
+	chainId         *big.Int
+	signerNode      *Signer // 执行签名方案的节点
 }
 
 func NewOracleNode(c Config) (*OracleNode, error) {
@@ -74,8 +70,6 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 	}
 	account := common.HexToAddress(hexAddress)
 
-	connectionManager := NewConnectionManager(BatchVerifier, account)
-
 	signatures := make([]byte, 0)
 	R := make([]byte, 0)
 
@@ -102,8 +96,6 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 
 	id := getRandstring(64)
 
-	privateKey := suite.G1().Point().Null() // 先随机成基础数值
-
 	requestGetPrivateKey := &generator.GetPrivatekeyRequest{
 		Identity: id,
 	}
@@ -111,6 +103,7 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 	if err != nil {
 		log.Println("get Private PublicKey :", err)
 	}
+	privateKey := suite.G1().Point().Null()
 	privateKey.UnmarshalBinary(resultForPrivateKey.PrivateKey)
 
 	cancel()
@@ -120,7 +113,6 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 		BatchVerifier,
 		ecdsaPrivateKey,
 		EthClient,
-		connectionManager,
 		account,
 		privateKey, // 私钥
 		chainId,
@@ -131,18 +123,15 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 	)
 
 	node := &OracleNode{
-		server:            server,
-		serverLis:         serverLis,
-		EthClient:         EthClient,
-		BatchVerifier:     BatchVerifier,
-		suite:             suite,
-		ecdsaPrivateKey:   ecdsaPrivateKey,
-		PrivateKey:        privateKey,
-		account:           account,
-		connectionManager: connectionManager,
-		chainId:           chainId,
-		signerNode:        Signer,
-		id:                id,
+		server:          server,
+		serverLis:       serverLis,
+		EthClient:       EthClient,
+		BatchVerifier:   BatchVerifier,
+		suite:           suite,
+		ecdsaPrivateKey: ecdsaPrivateKey,
+		account:         account,
+		chainId:         chainId,
+		signerNode:      Signer,
 	}
 
 	RegisterSignerServer(server, node)
@@ -173,7 +162,7 @@ func (n *OracleNode) register(ipAddr string) error {
 	}
 
 	hash := sha256.New()
-	hash.Write([]byte(n.id))
+	hash.Write([]byte(n.signerNode.id))
 	idHash := hash.Sum(nil)
 	idPk := n.suite.G1().Point().Base()
 	idPk = n.suite.G1().Point().Mul(n.suite.G1().Scalar().SetBytes(idHash), idPk)
@@ -181,7 +170,7 @@ func (n *OracleNode) register(ipAddr string) error {
 	if err != nil {
 		log.Println("translate idPk to Big : ", err)
 	}
-	_, err = n.BatchVerifier.Register(auth, ipAddr, n.id, idPkBig)
+	_, err = n.BatchVerifier.Register(auth, ipAddr, n.signerNode.id, idPkBig)
 	if err != nil {
 		return fmt.Errorf("register node: %w", err)
 
@@ -193,5 +182,4 @@ func (n *OracleNode) Stop() {
 	n.server.Stop()
 
 	n.EthClient.Close()
-	n.connectionManager.Close()
 }

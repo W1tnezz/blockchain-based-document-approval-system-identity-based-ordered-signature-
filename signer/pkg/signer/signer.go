@@ -23,7 +23,6 @@ type Signer struct {
 	BatchVerifier     *BatchVerifier
 	ecdsaPrivateKey   *ecdsa.PrivateKey
 	ethClient         *ethclient.Client
-	connectionManager *ConnectionManager
 	account           common.Address
 	chainId           *big.Int
 	privateKey        kyber.Point
@@ -41,7 +40,6 @@ func NewSigner(
 	BatchVerifier *BatchVerifier,
 	ecdsaPrivateKey *ecdsa.PrivateKey,
 	ethClient *ethclient.Client,
-	connectionManager *ConnectionManager,
 	account common.Address,
 	privateKey kyber.Point,
 	chainId *big.Int,
@@ -55,7 +53,6 @@ func NewSigner(
 		BatchVerifier:     BatchVerifier,
 		ecdsaPrivateKey:   ecdsaPrivateKey,
 		ethClient:         ethClient,
-		connectionManager: connectionManager,
 		account:           account,
 		chainId:           chainId,
 		privateKey:        privateKey,
@@ -136,26 +133,6 @@ func (s *Signer) orderlySakai(event *BatchVerifierSign) error {
 	if s.lastSignerIndex == -1 { // 表示第一个与其相等，是起始节点
 
 		s.makeCurrentSakai(event.SignOrder, message)
-
-		// signature, R := sakai(s.suite, message, s.privateKey)
-
-		// if verifySakai(s.suite, signature, message, R, s.mpk, s.id) {
-		// 	log.Println("当前产生的签名通过")
-		// }
-
-		// signatureBytes, err := signature.MarshalBinary()
-		// if err != nil {
-		// 	log.Println("signature Translate Byte : ", err)
-		// }
-		// RBytes, err := R.MarshalBinary()
-		// if err != nil {
-		// 	log.Println("signature Translate Byte :", err)
-		// }
-		// s.signatures = signatureBytes
-		// s.R = RBytes
-
-		// log.Println("当前的产生的sakai签名：", signature, R, message)
-		// s.SendSignatureToNext(event.SignOrder[1], signatureBytes, RBytes)
 
 	} else {
 		// 不是第一个节点，需要被唤醒
