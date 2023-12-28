@@ -92,8 +92,6 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 	mpk := suite.G2().Point()
 	mpk.UnmarshalBinary(resultForMpk.MasterPublicKey)
 
-	log.Println(mpk)
-
 	id := getRandstring(64)
 
 	requestGetPrivateKey := &generator.GetPrivatekeyRequest{
