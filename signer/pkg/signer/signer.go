@@ -109,6 +109,7 @@ func (s *Signer) WatchAndHandleSignatureRequestsLog(ctx context.Context, o *Orac
 }
 func (s *Signer) isSigner(SignOrders []common.Address) (bool, error) {
 	accountBig := s.account.Big()
+	
 	for i, account := range SignOrders {
 		if account.Big().Cmp(accountBig) == 0 { // 表示两个地址转换成的大整数相等
 

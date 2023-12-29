@@ -118,7 +118,6 @@ contract Sakai {
             }
         }
 
-
         for (uint i = 0; i < signatures.length; i++) {
             checkPairingInput.push(hashPointSequence[i][0]);
             checkPairingInput.push(hashPointSequence[i][1]);
@@ -136,5 +135,43 @@ contract Sakai {
         delete randoms;
         delete hashPointSequence;
         delete checkPairingInput;
+    }
+
+    function modInverse(uint256 a, uint256 b) public pure returns (uint256) {
+        uint256 m = b;
+        int256 m0;
+        int256 x0;
+        int256 x1;
+
+        if (b == 1) {
+            return 0;
+        }
+
+        // 初始化
+        x0 = 0;
+        x1 = 1;
+        m0 = int256(m);
+
+        while (a > 1) {
+            // q 是商，a 是余数
+            int256 q = int256(a / m);
+            int256 t = int256(m);
+
+            // m 是余数，a 是除数
+            m = a % m;
+            a = uint256(t);
+            t = x0;
+
+            // 更新 x0 和 x1
+            x0 = x1 - q * x0;
+            x1 = t;
+        }
+
+        // 确保 x1 是正数
+        if (x1 < 0) {
+            x1 += m0;
+        }
+
+        return uint256(x1);
     }
 }

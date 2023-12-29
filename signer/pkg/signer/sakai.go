@@ -31,7 +31,7 @@ var (
 
 // SakaiMetaData contains all meta data concerning the Sakai contract.
 var SakaiMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_registryContract\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"uint256[4]\",\"name\":\"masterPubKey\",\"type\":\"uint256[4]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"setOfR\",\"type\":\"uint256[4][]\"}],\"name\":\"submit\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_registryContract\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"a\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"b\",\"type\":\"uint256\"}],\"name\":\"modInverse\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[4]\",\"name\":\"masterPubKey\",\"type\":\"uint256[4]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"setOfR\",\"type\":\"uint256[4][]\"}],\"name\":\"submit\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
 }
 
 // SakaiABI is the input ABI used to generate the binding from.
@@ -178,6 +178,37 @@ func (_Sakai *SakaiTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Tran
 // Transact invokes the (paid) contract method with params as input values.
 func (_Sakai *SakaiTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
 	return _Sakai.Contract.contract.Transact(opts, method, params...)
+}
+
+// ModInverse is a free data retrieval call binding the contract method 0x3adfed28.
+//
+// Solidity: function modInverse(uint256 a, uint256 b) pure returns(uint256)
+func (_Sakai *SakaiCaller) ModInverse(opts *bind.CallOpts, a *big.Int, b *big.Int) (*big.Int, error) {
+	var out []interface{}
+	err := _Sakai.contract.Call(opts, &out, "modInverse", a, b)
+
+	if err != nil {
+		return *new(*big.Int), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(*big.Int)).(**big.Int)
+
+	return out0, err
+
+}
+
+// ModInverse is a free data retrieval call binding the contract method 0x3adfed28.
+//
+// Solidity: function modInverse(uint256 a, uint256 b) pure returns(uint256)
+func (_Sakai *SakaiSession) ModInverse(a *big.Int, b *big.Int) (*big.Int, error) {
+	return _Sakai.Contract.ModInverse(&_Sakai.CallOpts, a, b)
+}
+
+// ModInverse is a free data retrieval call binding the contract method 0x3adfed28.
+//
+// Solidity: function modInverse(uint256 a, uint256 b) pure returns(uint256)
+func (_Sakai *SakaiCallerSession) ModInverse(a *big.Int, b *big.Int) (*big.Int, error) {
+	return _Sakai.Contract.ModInverse(&_Sakai.CallOpts, a, b)
 }
 
 // Submit is a paid mutator transaction binding the contract method 0xabda3344.
