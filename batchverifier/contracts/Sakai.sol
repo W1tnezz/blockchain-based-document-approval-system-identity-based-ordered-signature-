@@ -99,7 +99,6 @@ contract Sakai {
             (firstX, firstY) = BN256G1.mulPoint(
                 [BN256G1.GX, BN256G1.GY, uint256(sha256(abi.encodePacked(message)))]
             );
-
             uint256[2] memory first;
             (first[0], first[1]) = BN256G1.mulPoint([firstX, firstY, randoms[0]]);
             hashPointSequence.push(first);
@@ -111,7 +110,6 @@ contract Sakai {
                 (tempX, tempY) = BN256G1.mulPoint(
                     [BN256G1.GX, BN256G1.GY, uint256(res)]
                 );
-
                 uint256[2] memory hashPoint;
                 (hashPoint[0], hashPoint[1]) = BN256G1.mulPoint(
                     [tempX, tempY, randoms[i]]
@@ -124,7 +122,6 @@ contract Sakai {
         for (uint i = 0; i < signatures.length; i++) {
             checkPairingInput.push(hashPointSequence[i][0]);
             checkPairingInput.push(hashPointSequence[i][1]);
-
             checkPairingInput.push(setOfR[i][1]);
             checkPairingInput.push(setOfR[i][0]);
             checkPairingInput.push(setOfR[i][3]);
