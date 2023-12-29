@@ -13,16 +13,6 @@ contract Sakai {
 
     uint256[] private checkPairingInput;
 
-    // generator of G2
-    uint256 private constant G2_NEG_X_IM =
-        0x198E9393920D483A7260BFB731FB5D25F1AA493335A9E71297E485B7AEF312C2;
-    uint256 private constant G2_NEG_X_RE =
-        0x1800DEEF121F1E76426A00665E5C4479674322D4F75EDADD46DEBD5CD992F6ED;
-    uint256 internal constant G2_NEG_Y_IM =
-        0x275dc4a288d1afb3cbb1ac09187524c7db36395df7be3b99e673b13a075a65ec;
-    uint256 internal constant G2_NEG_Y_RE =
-        0x1d9befcd05a5323e6da4d435f3b617cdb3af83285c2df711ef39c01571827f9d;
-
     Registry private registry;
 
     constructor(address _registryContract) {
@@ -69,10 +59,10 @@ contract Sakai {
             }
             checkPairingInput.push(Sx);
             checkPairingInput.push(Sy);
-            checkPairingInput.push(G2_NEG_X_IM);
-            checkPairingInput.push(G2_NEG_X_RE);
-            checkPairingInput.push(G2_NEG_Y_IM);
-            checkPairingInput.push(G2_NEG_Y_RE);
+            checkPairingInput.push(BN256G2.G2_NEG_X_IM);
+            checkPairingInput.push(BN256G2.G2_NEG_X_RE);
+            checkPairingInput.push(BN256G2.G2_NEG_Y_IM);
+            checkPairingInput.push(BN256G2.G2_NEG_Y_RE);
         }
 
         // cal H(ID1) * H(ID2) * H(ID3) ...
@@ -135,43 +125,5 @@ contract Sakai {
         delete randoms;
         delete hashPointSequence;
         delete checkPairingInput;
-    }
-
-    function modInverse(uint256 a, uint256 b) public pure returns (uint256) {
-        uint256 m = b;
-        int256 m0;
-        int256 x0;
-        int256 x1;
-
-        if (b == 1) {
-            return 0;
-        }
-
-        // 初始化
-        x0 = 0;
-        x1 = 1;
-        m0 = int256(m);
-
-        while (a > 1) {
-            // q 是商，a 是余数
-            int256 q = int256(a / m);
-            int256 t = int256(m);
-
-            // m 是余数，a 是除数
-            m = a % m;
-            a = uint256(t);
-            t = x0;
-
-            // 更新 x0 和 x1
-            x0 = x1 - q * x0;
-            x1 = t;
-        }
-
-        // 确保 x1 是正数
-        if (x1 < 0) {
-            x1 += m0;
-        }
-
-        return uint256(x1);
     }
 }
