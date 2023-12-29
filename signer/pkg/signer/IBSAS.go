@@ -35,7 +35,7 @@ func (s *Signer) IBSAS(event *BatchVerifierSign) error {
 				time.Sleep(1000 * time.Millisecond)
 			}
 		}
-		s.handleSakaiSignature(event.SignOrder, message)
+		s.makeCurrentIBSAS(event.SignOrde)
 	}
 	return nil
 }
@@ -55,8 +55,12 @@ func (s *Signer) receiveIBSASSignature(X []byte, Y []byte, Z []byte) {
 }
 
 // 生成当前节点的签名
-func (s *Signer) makeCurrentIBSAS() {
+func (s *Signer) makeCurrentIBSAS(SignOrde []common.Address) {
+	ids := make([][]byte, 0)
 
+	for _, addr := range(SignOrde) {
+		
+	}
 }
 
 // 发送给下一个
@@ -64,7 +68,4 @@ func (s *Signer) SendIBSASSignatureToNext(nextSigner common.Address, X []byte, Y
 
 }
 
-// 当接收到签名后，处理签名，然后再调用生成当前节点的签名构造签名
-func (s *Signer) handleIBSASSignature() {
 
-}
