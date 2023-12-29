@@ -250,7 +250,7 @@ func IBSAS_Verify(suite pairing.Suite, message [][]byte, X kyber.Point, Y kyber.
 
 	// firstLeft := suite.Pair(suite.G2().Point().Base(), Y)
 	// firstRight :=
-
+	return false
 }
 
 func getRandstring(length int) string {
