@@ -217,41 +217,55 @@ func IBSAS_Signing(suite pairing.Suite, message [][]byte, privateKey kyber.Point
 	return suite.G1().Point().Add(currentX, lastX), suite.G1().Point().Add(currentY, suite.G1().Point().Mul(suite.G1().Scalar().Inv(s[len(s)-1]), lastY)), currentZ
 }
 
-func IBSAS_Verify(suite pairing.Suite, message [][]byte, X kyber.Point, Y kyber.Point, Z kyber.Point, u kyber.Point, v kyber.Point, mpk kyber.Point, idSet [][]byte) bool {
-	// 开始第一轮的计算
-	H2 := sha256.New()
+// func IBSAS_Verify(suite pairing.Suite, message [][]byte, X kyber.Point, Y kyber.Point, Z kyber.Point, u kyber.Point, v kyber.Point, mpk kyber.Point, idSet []string) bool {
+// 	// 开始第一轮的计算
+// 	H2 := sha256.New()
 
-	s := make([]kyber.Scalar, 0)
-	for _, m := range message {
-		H2.Reset()
-		H2.Write(m)
-		si := suite.G1().Scalar().SetBytes(H2.Sum(nil))
-		s = append(s, si)
-	}
+// 	s := make([]kyber.Scalar, 0)
+// 	for _, m := range message {
+// 		H2.Reset()
+// 		H2.Write(m)
+// 		si := suite.G1().Scalar().SetBytes(H2.Sum(nil))
+// 		s = append(s, si)
+// 	}
 
-	ID_Point := make([]kyber.Point, 0)
-	H1 := sha256.New()
-	for _, id := range idSet {
-		H1.Reset()
-		H1.Write(id)
-		id_i := suite.G1().Scalar().SetBytes(H2.Sum(nil))
-		ID_Point = append(ID_Point, suite.G1().Point().Mul(id_i, nil))
-	}
+// 	ID_Point := make([]kyber.Point, 0)
+// 	H1 := sha256.New()
+// 	for _, id := range idSet {
+// 		H1.Reset()
+// 		H1.Write([]byte(id))
+// 		id_i := suite.G1().Scalar().SetBytes(H2.Sum(nil))
+// 		ID_Point = append(ID_Point, suite.G1().Point().Mul(id_i, nil))
+// 	}
 
-	id_Tmp := suite.G1().Point().Null()
-	for i, _ := range ID_Point {
-		tmpS := s[i+1]
-		for j := i + 2; j < len(s); j++ {
-			tmpS = suite.G1().Scalar().Mul(s[j], tmpS)
-		}
-		tmpS = suite.G1().Scalar().Inv(tmpS)
-		id_Tmp = suite.G1().Point().Add((suite.G1().Point().Mul(tmpS, ID_Point[i])), id_Tmp)
-	}
+// 	id_Tmp := suite.G1().Point().Null()
+// 	for i, _ := range ID_Point {
+// 		tmpS := s[i+1]
+// 		for j := i + 2; j < len(s); j++ {
+// 			tmpS = suite.G1().Scalar().Mul(s[j], tmpS)
+// 		}
+// 		tmpS = suite.G1().Scalar().Inv(tmpS)
+// 		id_Tmp = suite.G1().Point().Add((suite.G1().Point().Mul(tmpS, ID_Point[i])), id_Tmp)
+// 	}
 
-	// firstLeft := suite.Pair(suite.G2().Point().Base(), Y)
-	// firstRight :=
+// 	firstLeft := suite.Pair(suite.G2().Point().Base(), Y)
+// 	firstRight := suite.GT().Point().Add(suite.Pair(id_Tmp ,mpk) , suite.Pair(v, Z)) 
+// 	if !firstLeft.Equal(firstRight) {
+// 		log.Println("第一步验证失败")
+// 		return false
+// 	}
+// 	nextLeft := suite.Pair(X, suite.G2().Point().Base())
+// 	sumS := s[0]
+// 	for i , _ := range (s){
+// 		if i == 0 {
+// 			continue
+// 		}
+// 		sumS = suite.G1().Scalar().Mul(s[i])
+// 	}
 
-}
+// 	// newZ := 
+// 	// nextRight := 
+// }
 
 func getRandstring(length int) string {
 	if length < 1 {
