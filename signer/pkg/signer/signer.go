@@ -18,7 +18,8 @@ import (
 type Signer struct {
 	sync.RWMutex
 	suite           pairing.Suite
-	BatchVerifier   *BatchVerifier
+	Registry        *Registry
+	Sakai           *Sakai
 	ecdsaPrivateKey *ecdsa.PrivateKey
 	ethClient       *ethclient.Client
 	account         common.Address
@@ -41,7 +42,8 @@ type Signer struct {
 
 func NewSigner(
 	suite pairing.Suite,
-	BatchVerifier *BatchVerifier,
+	Registry *Registry,
+	Sakai *Sakai,
 	ecdsaPrivateKey *ecdsa.PrivateKey,
 	ethClient *ethclient.Client,
 	account common.Address,
@@ -56,7 +58,8 @@ func NewSigner(
 ) *Signer {
 	return &Signer{
 		suite:           suite,
-		BatchVerifier:   BatchVerifier,
+		Registry:        Registry,
+		Sakai:           Sakai,
 		ecdsaPrivateKey: ecdsaPrivateKey,
 		ethClient:       ethClient,
 		account:         account,
@@ -72,10 +75,10 @@ func NewSigner(
 }
 
 func (s *Signer) WatchAndHandleSignatureRequestsLog(ctx context.Context, o *OracleNode) error {
-	sink := make(chan *BatchVerifierSign) // 创建事件请求
+	sink := make(chan *RegistrySign) // 创建事件请求
 	defer close(sink)
 
-	sub, err := s.BatchVerifier.WatchSign(
+	sub, err := s.Registry.WatchSign(
 		&bind.WatchOpts{
 			Context: context.Background(),
 		},
@@ -93,7 +96,8 @@ func (s *Signer) WatchAndHandleSignatureRequestsLog(ctx context.Context, o *Orac
 			log.Println("Received SignatureRequest event for : ", typ, " type with message: ", event.Message)
 
 			switch event.Typ {
-			case 1:
+			// 0: sakai
+			case 0:
 				isSigner, _ := s.isSigner(event.SignOrder) // 判断该节点是否是参与签名的节点
 				if !isSigner {
 					continue
@@ -119,6 +123,7 @@ func (s *Signer) WatchAndHandleSignatureRequestsLog(ctx context.Context, o *Orac
 }
 func (s *Signer) isSigner(SignOrders []common.Address) (bool, error) {
 	accountBig := s.account.Big()
+	
 	for i, account := range SignOrders {
 		if account.Big().Cmp(accountBig) == 0 { // 表示两个地址转换成的大整数相等
 
