@@ -26,11 +26,17 @@ type Signer struct {
 	privateKey      kyber.Point
 	nextSignerIndex int
 	lastSignerIndex int
-	signatures      []byte // 这个是当前所有的，然后最后一个上一个签名者的签名 ， 当产生自己的时候，直接并上去
-	R               []byte // 这个是当前所有的，然后最后一个上一个签名者的签名 ， 当产生自己的时候，直接并上去
-	id              string
-	mpk             kyber.Point
-	message         []byte
+	// sakai的
+	signatures []byte // 这个是当前所有的，然后最后一个上一个签名者的签名 ， 当产生自己的时候，直接并上去
+	R          []byte // 这个是当前所有的，然后最后一个上一个签名者的签名 ， 当产生自己的时候，直接并上去
+	id         string
+	mpk        kyber.Point
+	message    []byte // 就是需要签名的消息
+
+	// IBSAS的
+	uForIBSAS      kyber.Point
+	vForIBSAS      kyber.Point
+	signatureIBSAS []kyber.Point
 }
 
 func NewSigner(
@@ -45,6 +51,8 @@ func NewSigner(
 	R []byte,
 	id string,
 	mpk kyber.Point,
+	uForIBSAS kyber.Point,
+	vForIBSAS kyber.Point,
 ) *Signer {
 	return &Signer{
 		suite:           suite,
@@ -58,6 +66,8 @@ func NewSigner(
 		R:               R,
 		id:              id,
 		mpk:             mpk,
+		uForIBSAS:       uForIBSAS,
+		vForIBSAS:       vForIBSAS,
 	}
 }
 
@@ -92,6 +102,12 @@ func (s *Signer) WatchAndHandleSignatureRequestsLog(ctx context.Context, o *Orac
 				if err := s.orderlySakai(event); err != nil {
 					log.Println("Handle SignatureRequest log:", err)
 				}
+			case 2:
+				isSigner, _ := s.isSigner(event.SignOrder) // 判断该节点是否是参与签名的节点
+				if !isSigner {
+					continue
+				}
+				s.IBSAS(event)
 			}
 
 		case err = <-sub.Err():

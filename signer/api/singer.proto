@@ -3,7 +3,7 @@ syntax = "proto3";
 package signer;
 option go_package = "./signer";
 
-// 第二部分，应该是发送给下一签名者来构造顺序签名
+// 第一部分，应该是发送给下一签名者来构造顺序签名
 message sendSignature {
     bytes signature = 1;
     bytes R = 2;
@@ -12,6 +12,17 @@ message sendSignatureResponse {
 
 }
 
+message sendIBESASSignature {
+    bytes X = 1;
+    bytes Y = 2;
+    bytes Z = 3;
+}
+message sendIBESASSignatureResponse {
+
+}
+
+
 service Signer {
   rpc sendOwnSignature(sendSignature) returns (sendSignatureResponse);
+  rpc sendOwnIBSASSignature(sendIBESASSignature) returns (sendIBESASSignatureResponse);
 }

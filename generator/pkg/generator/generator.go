@@ -22,6 +22,9 @@ type Generator struct {
 	port             string
 	server           *grpc.Server
 	listener         net.Listener
+
+	uForIBSAS kyber.Point
+	vForIBSAS kyber.Point
 }
 
 // GetMasterPublicKey implements PrivateKeyGeneratorServer.
@@ -82,11 +85,21 @@ func NewGenerator(
 
 	log.Println(suite.G2().Point().Base().String())
 
+
+	uPrivateKey := suite.G2().Scalar().Pick(suite.RandomStream())
+	vPrivateKey := suite.G2().Scalar().Pick(suite.RandomStream())
+
+	uForIBSAS := suite.G1().Point().Mul(uPrivateKey, nil)
+	vForIBSAS := suite.G1().Point().Mul(vPrivateKey, nil)
+
 	return &Generator{
 		suite:            suite,
 		masterPrivateKey: masterPrivateKey,
 		masterPublicKey:  masterPublicKey,
 		port:             port,
+
+		uForIBSAS: uForIBSAS,
+		vForIBSAS: vForIBSAS,
 	}
 }
 
@@ -113,6 +126,27 @@ func (g *Generator) LaunchGrpcServer() {
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+}
+
+// GetMasterPublicKey implements PrivateKeyGeneratorServer.
+func (g *Generator) GetUAndVForIBSAS(ctx context.Context, req *GetUAndVForIBSASRequest) (*GetUAndVForIBSASResponse, error) {
+	pr, ok := peer.FromContext(ctx)
+	if !ok {
+		log.Fatalf("[getClinetIP] invoke FromContext() failed")
+	}
+	log.Println("Handle get U or V request from " + pr.Addr.String())
+
+	u, err := g.uForIBSAS.MarshalBinary()
+	if err != nil {
+		log.Fatal("u error: ", err)
+		return nil, err
+	}
+	v, err := g.vForIBSAS.MarshalBinary()
+	if err != nil {
+		log.Fatal("v error: ", err)
+		return nil, err
+	}
+	return &GetUAndVForIBSASResponse{U: u, V: v}, nil
 }
 
 func (g *Generator) Close() {

@@ -21,7 +21,18 @@ message getMasterPublicKeyResponse {
     bytes masterPublicKey = 1;
 }
 
+message getUAndVForIBSASRequest {
+
+}
+
+message getUAndVForIBSASResponse {
+    bytes u = 1;
+    bytes v = 2;
+}
+
+
 service PrivateKeyGenerator {
   rpc getPrivateKey(getPrivatekeyRequest) returns (getPrivatekeyResponse);
   rpc getMasterPublicKey(getMasterPublicKeyRequest) returns (getMasterPublicKeyResponse);
+  rpc getUAndVForIBSAS(getUAndVForIBSASRequest) returns (getUAndVForIBSASResponse);
 }

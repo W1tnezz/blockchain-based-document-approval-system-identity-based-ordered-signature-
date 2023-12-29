@@ -1,2 +1,70 @@
 package signer
 
+import (
+	"log"
+
+	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+)
+
+func (s *Signer) IBSAS(event *BatchVerifierSign) error {
+	message := make([]byte, 0)
+	for _, b := range event.Message {
+		message = append(message, b)
+	}
+	s.message = message // 暂时存储初始消息
+
+	if s.lastSignerIndex == -1 { // 表示第一个与其相等，是起始节点
+
+		s.makeCurrentIBSAS()
+
+	} else {
+		// 不是第一个节点，需要被唤醒
+		timeout := time.After(Timeout)
+	loop:
+		for {
+			select {
+			case <-timeout:
+				log.Println("Timeout")
+				break loop
+			default:
+				if len(s.signatureIBSAS) == 3 {
+					break loop
+				}
+				time.Sleep(1000 * time.Millisecond)
+			}
+		}
+		s.handleSakaiSignature(event.SignOrder, message)
+	}
+	return nil
+}
+
+func (s *Signer) receiveIBSASSignature(X []byte, Y []byte, Z []byte) {
+	XPoint := s.suite.G1().Point()
+	XPoint.UnmarshalBinary(X)
+	YPoint := s.suite.G1().Point()
+	YPoint.UnmarshalBinary(Y)
+	ZPoint := s.suite.G2().Point()
+	ZPoint.UnmarshalBinary(Z)
+
+	// 接收到上一个签名
+	s.signatureIBSAS = append(s.signatureIBSAS, XPoint)
+	s.signatureIBSAS = append(s.signatureIBSAS, YPoint)
+	s.signatureIBSAS = append(s.signatureIBSAS, ZPoint)
+}
+
+// 生成当前节点的签名
+func (s *Signer) makeCurrentIBSAS() {
+
+}
+
+// 发送给下一个
+func (s *Signer) SendIBSASSignatureToNext(nextSigner common.Address, X []byte, Y []byte, Z []byte) {
+
+}
+
+// 当接收到签名后，处理签名，然后再调用生成当前节点的签名构造签名
+func (s *Signer) handleIBSASSignature() {
+
+}

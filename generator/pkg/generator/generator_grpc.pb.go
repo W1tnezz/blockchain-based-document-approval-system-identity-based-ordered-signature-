@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	PrivateKeyGenerator_GetPrivateKey_FullMethodName      = "/generator.PrivateKeyGenerator/getPrivateKey"
 	PrivateKeyGenerator_GetMasterPublicKey_FullMethodName = "/generator.PrivateKeyGenerator/getMasterPublicKey"
+	PrivateKeyGenerator_GetUAndVForIBSAS_FullMethodName   = "/generator.PrivateKeyGenerator/getUAndVForIBSAS"
 )
 
 // PrivateKeyGeneratorClient is the client API for PrivateKeyGenerator service.
@@ -29,6 +30,7 @@ const (
 type PrivateKeyGeneratorClient interface {
 	GetPrivateKey(ctx context.Context, in *GetPrivatekeyRequest, opts ...grpc.CallOption) (*GetPrivatekeyResponse, error)
 	GetMasterPublicKey(ctx context.Context, in *GetMasterPublicKeyRequest, opts ...grpc.CallOption) (*GetMasterPublicKeyResponse, error)
+	GetUAndVForIBSAS(ctx context.Context, in *GetUAndVForIBSASRequest, opts ...grpc.CallOption) (*GetUAndVForIBSASResponse, error)
 }
 
 type privateKeyGeneratorClient struct {
@@ -57,12 +59,22 @@ func (c *privateKeyGeneratorClient) GetMasterPublicKey(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *privateKeyGeneratorClient) GetUAndVForIBSAS(ctx context.Context, in *GetUAndVForIBSASRequest, opts ...grpc.CallOption) (*GetUAndVForIBSASResponse, error) {
+	out := new(GetUAndVForIBSASResponse)
+	err := c.cc.Invoke(ctx, PrivateKeyGenerator_GetUAndVForIBSAS_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PrivateKeyGeneratorServer is the server API for PrivateKeyGenerator service.
 // All implementations must embed UnimplementedPrivateKeyGeneratorServer
 // for forward compatibility
 type PrivateKeyGeneratorServer interface {
 	GetPrivateKey(context.Context, *GetPrivatekeyRequest) (*GetPrivatekeyResponse, error)
 	GetMasterPublicKey(context.Context, *GetMasterPublicKeyRequest) (*GetMasterPublicKeyResponse, error)
+	GetUAndVForIBSAS(context.Context, *GetUAndVForIBSASRequest) (*GetUAndVForIBSASResponse, error)
 	mustEmbedUnimplementedPrivateKeyGeneratorServer()
 }
 
@@ -75,6 +87,9 @@ func (UnimplementedPrivateKeyGeneratorServer) GetPrivateKey(context.Context, *Ge
 }
 func (UnimplementedPrivateKeyGeneratorServer) GetMasterPublicKey(context.Context, *GetMasterPublicKeyRequest) (*GetMasterPublicKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMasterPublicKey not implemented")
+}
+func (UnimplementedPrivateKeyGeneratorServer) GetUAndVForIBSAS(context.Context, *GetUAndVForIBSASRequest) (*GetUAndVForIBSASResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUAndVForIBSAS not implemented")
 }
 func (UnimplementedPrivateKeyGeneratorServer) mustEmbedUnimplementedPrivateKeyGeneratorServer() {}
 
@@ -125,6 +140,24 @@ func _PrivateKeyGenerator_GetMasterPublicKey_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PrivateKeyGenerator_GetUAndVForIBSAS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUAndVForIBSASRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PrivateKeyGeneratorServer).GetUAndVForIBSAS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PrivateKeyGenerator_GetUAndVForIBSAS_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PrivateKeyGeneratorServer).GetUAndVForIBSAS(ctx, req.(*GetUAndVForIBSASRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PrivateKeyGenerator_ServiceDesc is the grpc.ServiceDesc for PrivateKeyGenerator service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -139,6 +172,10 @@ var PrivateKeyGenerator_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "getMasterPublicKey",
 			Handler:    _PrivateKeyGenerator_GetMasterPublicKey_Handler,
+		},
+		{
+			MethodName: "getUAndVForIBSAS",
+			Handler:    _PrivateKeyGenerator_GetUAndVForIBSAS_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

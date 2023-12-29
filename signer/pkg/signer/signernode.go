@@ -104,6 +104,9 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 	privateKey := suite.G1().Point().Null()
 	privateKey.UnmarshalBinary(resultForPrivateKey.PrivateKey)
 
+	uForIBSAS := suite.Point()
+	vForIBSAS := suite.Point()
+
 	cancel()
 
 	Signer := NewSigner(
@@ -118,6 +121,8 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 		R,
 		id,
 		mpk,
+		uForIBSAS,
+		vForIBSAS,
 	)
 
 	node := &OracleNode{
