@@ -17,7 +17,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func (s *Signer) orderlySakai(event *BatchVerifierSign) error {
+func (s *Signer) orderlySakai(event *RegistrySign) error {
 	// 开始进行判断，是否是起始节点，如果是直接运行签名，如果不是，进入循环，直到上一个节点唤醒他
 
 	message := make([]byte, 0)
@@ -57,7 +57,7 @@ func (s *Signer) receiveSakaiSignature(signature []byte, R []byte) {
 }
 func (s *Signer) SendSignatureToNext(nextSigner common.Address, signature []byte, R []byte) {
 	log.Println("nextSigner is : ", nextSigner)
-	node, err := s.BatchVerifier.GetSignerByAddress(nil, nextSigner)
+	node, err := s.Registry.GetSignerByAddress(nil, nextSigner)
 	if err != nil {
 		log.Println("get node :", err)
 	}
@@ -105,7 +105,7 @@ func (s *Signer) handleSakaiSignature(SignOrder []common.Address, message []byte
 
 	// log.Println("上一个sakai：", lastSignature, lastR, lastMessage)
 
-	lastNode, _ := s.BatchVerifier.GetSignerByAddress(nil, SignOrder[s.lastSignerIndex])
+	lastNode, _ := s.Registry.GetSignerByAddress(nil, SignOrder[s.lastSignerIndex])
 
 	if verifySakai(s.suite, lastSignature, lastMessage, lastR, s.mpk, lastNode.Identity) {
 		message = append(message, lastSignatureByte...)
@@ -141,7 +141,7 @@ func (s *Signer) makeCurrentSakai(SignOrder []common.Address, message []byte) {
 		if err != nil {
 			log.Println("NewKeyedTransactorWithChainID :", err)
 		}
-		_, err = s.BatchVerifier.SubmitBatch1(auth, masterPubKey, signatures, setofR)
+		_, err = s.Sakai.Submit(auth, masterPubKey, signatures, setofR)
 
 		if err != nil {
 			log.Println("SubmitBatch1 has err :", err)
@@ -197,7 +197,7 @@ func (s *Signer) makeSubmitSignature(SignOrder []common.Address) ([4]*big.Int, [
 	ids := make([]string, 0)
 
 	for _, addr := range SignOrder {
-		node, _ := s.BatchVerifier.GetSignerByAddress(nil, addr)
+		node, _ := s.Registry.GetSignerByAddress(nil, addr)
 		ids = append(ids, node.Identity)
 	}
 

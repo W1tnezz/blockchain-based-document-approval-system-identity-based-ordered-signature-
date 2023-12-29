@@ -1,6 +1,7 @@
 {
   "contracts": {
-    "ContractAddress": "0xb4fa0c161ca7311c9f5f8145559465e4810f3ba2"
+    "RegistryContractAddress": "0xB4fA0c161CA7311c9f5F8145559465E4810F3ba2",
+    "SakaiContractAddress": "0xBa504200C746261f734F0324e33440c301AD171e"
   },
   "ethereum": {
     "Address": "ws://127.0.0.1:8545",

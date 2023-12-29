@@ -10,4 +10,5 @@ solc --optimize --abi $baseDir/contracts/Registry.sol --overwrite -o $baseDir/bu
 solc --optimize --abi $baseDir/contracts/Sakai.sol --overwrite -o $baseDir/build/contracts/abi --base-path $baseDir/contracts
 
 # abigen --abi $baseDir/build/contracts/abi/RegistryContract.abi --pkg iop --type RegistryContract --out ../pkg/iop/registrycontract.go
+abigen --abi $baseDir/build/contracts/abi/Registry.abi --pkg signer --type Registry  --out $baseDir/../signer/pkg/signer/registry.go
 abigen --abi $baseDir/build/contracts/abi/Sakai.abi --pkg signer --type Sakai  --out $baseDir/../signer/pkg/signer/sakai.go

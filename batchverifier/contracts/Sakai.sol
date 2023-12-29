@@ -62,7 +62,6 @@ contract Sakai {
             for (uint i = 0; i < signatures.length; i++) {
                 uint256 tempX;
                 uint256 tempY;
-                require(BN256G1.isOnCurve(signatures[i]), "Not on curve");
                 (tempX, tempY) = BN256G1.mulPoint(
                     [signatures[i][0], signatures[i][1], randoms[i]]
                 );
@@ -70,8 +69,11 @@ contract Sakai {
             }
             checkPairingInput.push(Sx);
             checkPairingInput.push(Sy);
+            checkPairingInput.push(G2_NEG_X_IM);
+            checkPairingInput.push(G2_NEG_X_RE);
+            checkPairingInput.push(G2_NEG_Y_IM);
+            checkPairingInput.push(G2_NEG_Y_RE);
         }
-
 
         // cal H(ID1) * H(ID2) * H(ID3) ...
         {
@@ -84,6 +86,10 @@ contract Sakai {
             }
             checkPairingInput.push(idx);
             checkPairingInput.push(idy);
+            checkPairingInput.push(masterPubKey[1]);
+            checkPairingInput.push(masterPubKey[0]);
+            checkPairingInput.push(masterPubKey[3]);
+            checkPairingInput.push(masterPubKey[2]);
         }
 
         // cal H(mi)
@@ -101,7 +107,6 @@ contract Sakai {
             for (uint i = 1; i < SignOrder.length; i++) {
                 uint256 tempX;
                 uint256 tempY;
-            
                 bytes32 res = sha256(abi.encodePacked(message, signatures[i - 1][0], signatures[i - 1][1]));
                 (tempX, tempY) = BN256G1.mulPoint(
                     [BN256G1.GX, BN256G1.GY, uint256(res)]
@@ -115,15 +120,6 @@ contract Sakai {
             }
         }
 
-        checkPairingInput.push(G2_NEG_X_IM);
-        checkPairingInput.push(G2_NEG_X_RE);
-        checkPairingInput.push(G2_NEG_Y_IM);
-        checkPairingInput.push(G2_NEG_Y_RE);
-
-        checkPairingInput.push(masterPubKey[1]);
-        checkPairingInput.push(masterPubKey[0]);
-        checkPairingInput.push(masterPubKey[3]);
-        checkPairingInput.push(masterPubKey[2]);
 
         for (uint i = 0; i < signatures.length; i++) {
             checkPairingInput.push(hashPointSequence[i][0]);
@@ -135,9 +131,13 @@ contract Sakai {
             checkPairingInput.push(setOfR[i][2]);
         }
 
+        require(
+            BN256G1.bn256CheckPairingBatch(checkPairingInput),
+            "sig verify fail"
+        );
+
         delete randoms;
         delete hashPointSequence;
         delete checkPairingInput;
     }
-
 }

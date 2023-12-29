@@ -26,7 +26,8 @@ type OracleNode struct {
 	server          *grpc.Server
 	serverLis       net.Listener
 	EthClient       *ethclient.Client
-	BatchVerifier   *BatchVerifier
+	Registry        *Registry
+	Sakai           *Sakai
 	suite           pairing.Suite
 	ecdsaPrivateKey *ecdsa.PrivateKey
 	account         common.Address
@@ -49,7 +50,12 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 	// 区块链的ID
 	chainId := big.NewInt(c.Ethereum.ChainID)
 
-	BatchVerifier, err := NewBatchVerifier(common.HexToAddress(c.Contracts.ContractAddress), EthClient)
+	Registry, err := NewRegistry(common.HexToAddress(c.Contracts.RegistryContractAddress), EthClient)
+	if err != nil {
+		return nil, fmt.Errorf("oracle contract: %v", err)
+	}
+	
+	Sakai, err := NewSakai(common.HexToAddress(c.Contracts.SakaiContractAddress), EthClient)
 
 	if err != nil {
 		return nil, fmt.Errorf("oracle contract: %v", err)
@@ -108,7 +114,8 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 
 	Signer := NewSigner(
 		suite,
-		BatchVerifier,
+		Registry,
+		Sakai,
 		ecdsaPrivateKey,
 		EthClient,
 		account,
@@ -124,7 +131,7 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 		server:          server,
 		serverLis:       serverLis,
 		EthClient:       EthClient,
-		BatchVerifier:   BatchVerifier,
+		Registry:        Registry,
 		suite:           suite,
 		ecdsaPrivateKey: ecdsaPrivateKey,
 		account:         account,
@@ -168,7 +175,7 @@ func (n *OracleNode) register(ipAddr string) error {
 	if err != nil {
 		log.Println("translate idPk to Big : ", err)
 	}
-	_, err = n.BatchVerifier.Register(auth, ipAddr, n.signerNode.id, idPkBig)
+	_, err = n.Registry.Register(auth, ipAddr, n.signerNode.id, idPkBig)
 	if err != nil {
 		return fmt.Errorf("register node: %w", err)
 

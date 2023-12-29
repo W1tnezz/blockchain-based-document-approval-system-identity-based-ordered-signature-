@@ -8,8 +8,9 @@ type Config struct {
 }
 
 type ContractsConfig struct {
-	ContractAddress        string
-	DistKeyContractAddress string
+	RegistryContractAddress string
+	SakaiContractAddress    string
+	DistKeyContractAddress  string
 }
 
 type EthereumConfig struct {
