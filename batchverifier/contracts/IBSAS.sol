@@ -21,15 +21,24 @@ contract Sakai {
 
     // --------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
     function submit(
-        uint256[4] calldata masterPubKey,
-        uint256[2][] calldata signatures,
-        uint256[4][] calldata setOfR
+        uint256[2] calldata _X,
+        uint256[2] calldata _Y,
+        uint256[4] calldata _Z,
+        uint256[4] calldata _Z1,
+        uint256[2] calldata _u,
+        uint256[2] calldata _v,
+        uint256[4] calldata _g,
+        uint256[4] calldata mpk
     ) external payable {
         bytes32 message = registry.getMessage();
         address[] memory SignOrder = registry.getSignOrder();
-
+        
+        uint256[2] combine1;
+        uint256[2] combine2;
+        for(uint i = 0; i < SignOrder; i++){
+            
+        }
 
     }
 }
