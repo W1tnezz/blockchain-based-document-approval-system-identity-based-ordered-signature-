@@ -5,7 +5,7 @@ import "./crypto/BN256G1.sol";
 import "./crypto/BN256G2.sol";
 import "./Registry.sol";
 
-contract Sakai {
+contract IBSAS {
 
     uint256[] private randoms;
 
@@ -34,9 +34,9 @@ contract Sakai {
         bytes32 message = registry.getMessage();
         address[] memory SignOrder = registry.getSignOrder();
         
-        uint256[2] combine1;
-        uint256[2] combine2;
-        for(uint i = 0; i < SignOrder; i++){
+        uint256[2] memory combine1;
+        uint256[2] memory combine2;
+        for(uint i = 0; i < SignOrder.length; i++){
             
         }
 

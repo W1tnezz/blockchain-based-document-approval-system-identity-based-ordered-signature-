@@ -109,7 +109,7 @@ func (s *Signer) WatchAndHandleSignatureRequestsLog(ctx context.Context, o *Orac
 				if !isSigner {
 					continue
 				}
-				s.IBSAS(event)
+				// s.IBSAS(event)
 			}
 
 		case err = <-sub.Err():

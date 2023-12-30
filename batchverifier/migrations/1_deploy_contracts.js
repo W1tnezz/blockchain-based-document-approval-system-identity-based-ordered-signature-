@@ -8,7 +8,7 @@ module.exports = function (deployer) {
       }
     ).then(
       function (){
-        return deployer.deploy(IBASA, Registry.address);
+        return deployer.deploy(IBSAS, Registry.address);
       }
     );
 };
