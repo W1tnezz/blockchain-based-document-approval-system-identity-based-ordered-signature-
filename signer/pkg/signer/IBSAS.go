@@ -57,15 +57,26 @@ func (s *Signer) receiveIBSASSignature(X []byte, Y []byte, Z []byte) {
 // 生成当前节点的签名
 func (s *Signer) makeCurrentIBSAS(SignOrde []common.Address) {
 	ids := make([][]byte, 0)
+	//  找到所有之前的身份
+	for _, addr := range SignOrde {
 
-	for _, addr := range(SignOrde) {
-		
+		node, err := s.Registry.GetSignerByAddress(nil, addr)
+		if err != nil {
+			log.Println("get node :", err)
+		}
+		ids = append(ids, []byte(node.Identity))
+
+		// 如果当前节点是找到了
+		if addr.Cmp(s.account) == 0 {
+			break
+		}
 	}
+	
+
+
 }
 
 // 发送给下一个
 func (s *Signer) SendIBSASSignatureToNext(nextSigner common.Address, X []byte, Y []byte, Z []byte) {
 
 }
-
-

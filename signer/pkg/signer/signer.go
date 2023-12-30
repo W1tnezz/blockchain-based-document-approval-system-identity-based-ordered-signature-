@@ -25,8 +25,10 @@ type Signer struct {
 	account         common.Address
 	chainId         *big.Int
 	privateKey      kyber.Point
+	generatorIp     string
 	nextSignerIndex int
 	lastSignerIndex int
+
 	// sakai的
 	signatures []byte // 这个是当前所有的，然后最后一个上一个签名者的签名 ， 当产生自己的时候，直接并上去
 	R          []byte // 这个是当前所有的，然后最后一个上一个签名者的签名 ， 当产生自己的时候，直接并上去
@@ -35,8 +37,6 @@ type Signer struct {
 	message    []byte // 就是需要签名的消息
 
 	// IBSAS的
-	uForIBSAS      kyber.Point
-	vForIBSAS      kyber.Point
 	signatureIBSAS []kyber.Point
 }
 
@@ -53,8 +53,7 @@ func NewSigner(
 	R []byte,
 	id string,
 	mpk kyber.Point,
-	uForIBSAS kyber.Point,
-	vForIBSAS kyber.Point,
+	generatorIp string,
 ) *Signer {
 	return &Signer{
 		suite:           suite,
@@ -65,12 +64,11 @@ func NewSigner(
 		account:         account,
 		chainId:         chainId,
 		privateKey:      privateKey,
+		generatorIp:     generatorIp,
 		signatures:      signatures,
 		R:               R,
 		id:              id,
 		mpk:             mpk,
-		uForIBSAS:       uForIBSAS,
-		vForIBSAS:       vForIBSAS,
 	}
 }
 
@@ -122,10 +120,9 @@ func (s *Signer) WatchAndHandleSignatureRequestsLog(ctx context.Context, o *Orac
 	}
 }
 func (s *Signer) isSigner(SignOrders []common.Address) (bool, error) {
-	accountBig := s.account.Big()
-	
+
 	for i, account := range SignOrders {
-		if account.Big().Cmp(accountBig) == 0 { // 表示两个地址转换成的大整数相等
+		if account.Cmp(s.account) == 0 { // 表示两个地址转换成的大整数相等
 
 			s.lastSignerIndex = i - 1
 
