@@ -117,4 +117,4 @@ dist
 
 go.*
 
-batchverifier/build/
+batchverifier/build/*
