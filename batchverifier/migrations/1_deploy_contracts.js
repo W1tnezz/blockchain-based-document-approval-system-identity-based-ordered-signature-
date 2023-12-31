@@ -5,14 +5,24 @@ const IBSAS = artifacts.require("IBSAS");
 module.exports = function (deployer) {
     deployer.deploy(Registry).then(
       function(){
-        deployer.deploy(BN256G1);
+        return deployer.deploy(BN256G1);
+      }
+    ).then(
+      function(){
+        return deployer.deploy(Sakai, Registry.address);
+      }
+    ).then(
+      function(){
+        return deployer.link(BN256G1, IBSAS);
+      }
+    ).then(
+      function(){
+        return deployer.deploy(IBSAS, Registry.address);
       }
     )
     
-    deployer.link(BN256G1, Sakai)
-    deployer.deploy(Sakai, Registry.address);
-
-    deployer.link(BN256G1, IBSAS)
-    deployer.deploy(IBSAS, Registry.address);
-
+    // deployer.deploy(BN256G1);
+    // deployer.deploy(Sakai, Registry.address);
+    // deployer.link(BN256G1, IBSAS);
+    // deployer.deploy(IBSAS, Registry.address);
 };
