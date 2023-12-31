@@ -116,7 +116,7 @@ contract Sakai {
             checkPairingInput.push(setOfR[i][3]);
             checkPairingInput.push(setOfR[i][2]);
         }
-
+        // 先虚部后实部
         require(
             BN256G1.bn256CheckPairingBatch(checkPairingInput),
             "sig verify fail"
