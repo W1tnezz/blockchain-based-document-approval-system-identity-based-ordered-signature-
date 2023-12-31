@@ -105,7 +105,7 @@ func (s *Signer) WatchAndHandleSignatureRequestsLog(ctx context.Context, o *Orac
 					log.Println("Handle SignatureRequest log:", err)
 				}
 			// 1: IBSAS
-			case 2:
+			case 1:
 				isSigner, _ := s.isSigner(event.SignOrder) // 判断该节点是否是参与签名的节点
 				if !isSigner {
 					continue
