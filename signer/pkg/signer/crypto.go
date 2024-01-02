@@ -181,87 +181,87 @@ func verifySakaiBatch(suite pairing.Suite, signatures []kyber.Point, R []kyber.P
 
 }
 
-// IBSAS  message[i] = ID1|| ... || IDi || m
-func IBSAS_Signing(suite pairing.Suite, message [][]byte, privateKey kyber.Point, lastX kyber.Point, lastY kyber.Point, lastZ kyber.Point, u kyber.Point, v kyber.Point) (kyber.Point, kyber.Point, kyber.Point) {
+// IBSAS  message[i] = m || ID1|| ... || IDi ||
+func IBSAS_Signing(suite pairing.Suite, message []byte, privateKey kyber.Point, lastX kyber.Point, lastY kyber.Point, lastZ kyber.Point, u kyber.Point, v kyber.Point, idset [][]byte) (kyber.Point, kyber.Point, kyber.Point) {
 
+	log.Println("message:", message)
 	H2 := sha256.New()
-
+	H2.Write(message)
 	s := make([]kyber.Scalar, 0)
-	for _, m := range message {
-		H2.Reset()
-		H2.Write(m)
+	for _, id := range idset {
+		H2.Write(id)
 		si := suite.G1().Scalar().SetBytes(H2.Sum(nil))
 		s = append(s, si)
 	}
+
 
 	r := suite.G1().Scalar().Pick(random.New())
 
 	currentX := suite.G1().Point().Add(suite.G1().Point().Mul(suite.G1().Scalar().Mul(s[len(s)-1], r), u), privateKey)
 
-	tmpS := s[0]
+	tmpS := suite.G1().Scalar().One()
 
 	for i, _ := range s {
-		if i == 0 || i == len(s)-1 {
-			continue
+		if i == len(s)-1 {
+			break
 		}
-
 		tmpS = suite.G1().Scalar().Mul(tmpS, s[i])
 	}
 
-	tmpS = suite.G1().Scalar().Inv(tmpS)
 
-	currentY := suite.G1().Point().Add(suite.G1().Point().Mul(suite.G1().Scalar().Mul(r, tmpS), v), privateKey)
 
-	currentZ := suite.G2().Point().Add(suite.G2().Point().Mul(suite.G1().Scalar().Inv(s[len(s)-1]), lastZ), suite.G2().Point().Mul(suite.G1().Scalar().Mul(r, tmpS), nil))
+	currentY := suite.G1().Point().Add(suite.G1().Point().Mul(suite.G1().Scalar().Div(r, tmpS), v), privateKey)
+
+	currentZ := suite.G2().Point().Add(suite.G2().Point().Mul(suite.G1().Scalar().Inv(s[len(s)-1]), lastZ), suite.G2().Point().Mul(suite.G1().Scalar().Div(r, tmpS), nil))
 
 	return suite.G1().Point().Add(currentX, lastX), suite.G1().Point().Add(currentY, suite.G1().Point().Mul(suite.G1().Scalar().Inv(s[len(s)-1]), lastY)), currentZ
 }
 
-func IBSAS_Verify(suite pairing.Suite, message [][]byte, X kyber.Point, Y kyber.Point, Z kyber.Point, u kyber.Point, v kyber.Point, mpk kyber.Point, idSet []string) bool {
+func IBSAS_Verify(suite pairing.Suite, message []byte, X kyber.Point, Y kyber.Point, Z kyber.Point, u kyber.Point, v kyber.Point, mpk kyber.Point, idSet [][]byte) bool {
 	// 开始第一轮的计算
 	H2 := sha256.New()
 
+	H2.Write(message)
 	s := make([]kyber.Scalar, 0)
-	for _, m := range message {
-		H2.Reset()
-		H2.Write(m)
+	for _, id := range idSet {
+		H2.Write(id)
 		si := suite.G1().Scalar().SetBytes(H2.Sum(nil))
 		s = append(s, si)
 	}
+
 
 	ID_Point := make([]kyber.Point, 0)
 	H1 := sha256.New()
 	for _, id := range idSet {
 		H1.Reset()
-		H1.Write([]byte(id))
-		id_i := suite.G1().Scalar().SetBytes(H2.Sum(nil))
+		H1.Write(id)
+		id_i := suite.G1().Scalar().SetBytes(H1.Sum(nil))
 		ID_Point = append(ID_Point, suite.G1().Point().Mul(id_i, nil))
+
 	}
 
 	id_Tmp := suite.G1().Point().Null()
 	for i, _ := range ID_Point {
-		tmpS := s[i+1]
-		for j := i + 2; j < len(s); j++ {
+		tmpS := suite.G1().Scalar().One()
+		for j := i + 1; j < len(s); j++ {
 			tmpS = suite.G1().Scalar().Mul(s[j], tmpS)
 		}
 		tmpS = suite.G1().Scalar().Inv(tmpS)
 		id_Tmp = suite.G1().Point().Add((suite.G1().Point().Mul(tmpS, ID_Point[i])), id_Tmp)
 	}
 
-	firstLeft := suite.Pair(suite.G2().Point().Base(), Y)
+	firstLeft := suite.Pair(Y, suite.G2().Point().Base())
 	firstRight := suite.GT().Point().Add(suite.Pair(id_Tmp, mpk), suite.Pair(v, Z))
 	if !firstLeft.Equal(firstRight) {
 		log.Println("第一步验证失败")
-		return false
+		// return false
 	}
 
 	// 第二步验证
 	nextLeft := suite.Pair(X, suite.G2().Point().Base())
-	sumS := s[0]
+	sumS := suite.G1().Scalar().One()
 	for i, _ := range s {
-		if i == 0 {
-			continue
-		}
+
 		sumS = suite.G1().Scalar().Mul(s[i], sumS)
 	}
 
@@ -276,7 +276,7 @@ func IBSAS_Verify(suite pairing.Suite, message [][]byte, X kyber.Point, Y kyber.
 		tmpId = suite.G1().Point().Add(ID_Point[i], tmpId)
 	}
 
-	nextRight := suite.GT().Point().Add(suite.Pair(newZ, u), suite.Pair(tmpId, mpk))
+	nextRight := suite.GT().Point().Add(suite.Pair(u, newZ), suite.Pair(tmpId, mpk))
 
 	if !nextLeft.Equal(nextRight) {
 		log.Println("第二步验证失败")

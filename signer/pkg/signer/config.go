@@ -10,7 +10,7 @@ type Config struct {
 type ContractsConfig struct {
 	RegistryContractAddress string
 	SakaiContractAddress    string
-	DistKeyContractAddress  string
+	IBSASContractAddress  string
 }
 
 type EthereumConfig struct {

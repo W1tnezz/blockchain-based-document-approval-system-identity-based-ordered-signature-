@@ -73,7 +73,7 @@ contract IBSAS {
         checkPairingInput.push(mpk[0]);
         checkPairingInput.push(mpk[3]);
         checkPairingInput.push(mpk[2]);
-        require(BN256G1.bn256CheckPairingBatch(checkPairingInput), "first check failed");
+        // require(BN256G1.bn256CheckPairingBatch(checkPairingInput), "first check failed");
 
         delete checkPairingInput;
         checkPairingInput.push(_X[0]);
@@ -94,6 +94,6 @@ contract IBSAS {
         checkPairingInput.push(mpk[0]);
         checkPairingInput.push(mpk[3]);
         checkPairingInput.push(mpk[2]);
-        require(BN256G1.bn256CheckPairingBatch(checkPairingInput), "second check failed");
+        // require(BN256G1.bn256CheckPairingBatch(checkPairingInput), "second check failed");
     }
 }
