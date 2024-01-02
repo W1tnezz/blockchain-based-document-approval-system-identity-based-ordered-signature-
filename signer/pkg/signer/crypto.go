@@ -194,7 +194,6 @@ func IBSAS_Signing(suite pairing.Suite, message []byte, privateKey kyber.Point, 
 		s = append(s, si)
 	}
 
-
 	r := suite.G1().Scalar().Pick(random.New())
 
 	currentX := suite.G1().Point().Add(suite.G1().Point().Mul(suite.G1().Scalar().Mul(s[len(s)-1], r), u), privateKey)
@@ -207,8 +206,6 @@ func IBSAS_Signing(suite pairing.Suite, message []byte, privateKey kyber.Point, 
 		}
 		tmpS = suite.G1().Scalar().Mul(tmpS, s[i])
 	}
-
-
 
 	currentY := suite.G1().Point().Add(suite.G1().Point().Mul(suite.G1().Scalar().Div(r, tmpS), v), privateKey)
 
@@ -223,12 +220,19 @@ func IBSAS_Verify(suite pairing.Suite, message []byte, X kyber.Point, Y kyber.Po
 
 	H2.Write(message)
 	s := make([]kyber.Scalar, 0)
+	data := make([]byte, 0)
+	data = append(data, message...)
 	for _, id := range idSet {
-		H2.Write(id)
-		si := suite.G1().Scalar().SetBytes(H2.Sum(nil))
-		s = append(s, si)
-	}
+		H2.Reset()
+		data = append(data, id...)
 
+		H2.Write(data)
+		si := suite.G1().Scalar().SetBytes(H2.Sum(nil))
+		log.Println("data", hex.EncodeToString(data))
+		s = append(s, si)
+		big, _ := ScalarToBig(si)
+		log.Println(big.Text(10))
+	}
 
 	ID_Point := make([]kyber.Point, 0)
 	H1 := sha256.New()

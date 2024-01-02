@@ -32,7 +32,10 @@ contract IBSAS {
         address[] memory SignOrder = registry.getSignOrder();
         
         // cal all H(si) 
+        // question : message || ID1
         bytes memory s = abi.encodePacked(message, registry.getSignerByAddress(SignOrder[0]).identity);
+        // hashSi.push(uint256(sha256(s)));
+
         for(uint i = 1; i < SignOrder.length; i++){
             s = abi.encodePacked(s, registry.getSignerByAddress(SignOrder[i]).identity);
             hashSi.push(uint256(sha256(s)));
