@@ -246,11 +246,8 @@ func IBSAS_Verify(suite pairing.Suite, message []byte, X kyber.Point, Y kyber.Po
 		for j := i + 1; j < len(s); j++ {
 			tmpS = suite.G1().Scalar().Mul(s[j], tmpS)
 		}
-		big, _ := ScalarToBig(tmpS)
-		log.Println("tmps :", tmpS, big.Text(10))
+
 		tmpS = suite.G1().Scalar().Inv(tmpS)
-		big, _ = ScalarToBig(tmpS)
-		log.Println("tmps Invt :", big.Text(10))
 
 		id_Tmp = suite.G1().Point().Add((suite.G1().Point().Mul(tmpS, ID_Point[i])), id_Tmp)
 	}
