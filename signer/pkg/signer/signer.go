@@ -20,6 +20,7 @@ type Signer struct {
 	suite           pairing.Suite
 	Registry        *Registry
 	Sakai           *Sakai
+	IBSAS           *IBSAS
 	ecdsaPrivateKey *ecdsa.PrivateKey
 	ethClient       *ethclient.Client
 	account         common.Address
@@ -44,6 +45,7 @@ func NewSigner(
 	suite pairing.Suite,
 	Registry *Registry,
 	Sakai *Sakai,
+	IBSAS *IBSAS,
 	ecdsaPrivateKey *ecdsa.PrivateKey,
 	ethClient *ethclient.Client,
 	account common.Address,
@@ -59,6 +61,7 @@ func NewSigner(
 		suite:           suite,
 		Registry:        Registry,
 		Sakai:           Sakai,
+		IBSAS:           IBSAS,
 		ecdsaPrivateKey: ecdsaPrivateKey,
 		ethClient:       ethClient,
 		account:         account,
@@ -110,7 +113,7 @@ func (s *Signer) WatchAndHandleSignatureRequestsLog(ctx context.Context, o *Orac
 				if !isSigner {
 					continue
 				}
-				if err := s.IBSAS(event); err != nil {
+				if err := s.IBSASScheme(event); err != nil {
 					log.Println("Handle SignatureRequest log:", err)
 				}
 			}
@@ -129,11 +132,8 @@ func (s *Signer) isSigner(SignOrders []common.Address) (bool, error) {
 
 			s.lastSignerIndex = i - 1
 
-			if i+1 < len(SignOrders) {
-				s.nextSignerIndex = i + 1
-			} else {
-				s.nextSignerIndex = 0
-			}
+			s.nextSignerIndex = (i + 1) % len(SignOrders)
+
 			return true, nil
 		}
 	}

@@ -54,11 +54,16 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 	if err != nil {
 		return nil, fmt.Errorf("oracle contract: %v", err)
 	}
-	
+
 	Sakai, err := NewSakai(common.HexToAddress(c.Contracts.SakaiContractAddress), EthClient)
 
 	if err != nil {
-		return nil, fmt.Errorf("oracle contract: %v", err)
+		return nil, fmt.Errorf("Sakai contract: %v", err)
+	}
+
+	IBSAS, err := NewIBSAS(common.HexToAddress(c.Contracts.IBSASContractAddress), EthClient)
+	if err != nil {
+		return nil, fmt.Errorf("IBSAS contract: %v", err)
 	}
 
 	// suite := bn256.NewSuite()
@@ -110,13 +115,13 @@ func NewOracleNode(c Config) (*OracleNode, error) {
 	privateKey := suite.G1().Point().Null()
 	privateKey.UnmarshalBinary(resultForPrivateKey.PrivateKey)
 
-
 	cancel()
 
 	Signer := NewSigner(
 		suite,
 		Registry,
 		Sakai,
+		IBSAS,
 		ecdsaPrivateKey,
 		EthClient,
 		account,
