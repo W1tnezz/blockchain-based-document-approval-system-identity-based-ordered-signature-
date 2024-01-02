@@ -35,6 +35,9 @@ contract IBSAS {
         bytes memory s = abi.encodePacked(message, registry.getSignerByAddress(SignOrder[0]).identity);
         for(uint i = 1; i < SignOrder.length; i++){
             s = abi.encodePacked(s, registry.getSignerByAddress(SignOrder[i]).identity);
+            uint256 x;
+            uint256 y;
+            (x, y) = BN256G1.mulPoint([BN256G1.GX, BN256G1.GY, uint256(sha256(s))]);
             hashSi.push(uint256(sha256(s)));
         }
 
