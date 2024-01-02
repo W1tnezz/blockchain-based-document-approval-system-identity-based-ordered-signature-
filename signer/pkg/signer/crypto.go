@@ -223,15 +223,12 @@ func IBSAS_Verify(suite pairing.Suite, message []byte, X kyber.Point, Y kyber.Po
 	data := make([]byte, 0)
 	data = append(data, message...)
 	for _, id := range idSet {
-		H2.Reset()
-		data = append(data, id...)
-
-		H2.Write(data)
+		H2.Write(id)
 		si := suite.G1().Scalar().SetBytes(H2.Sum(nil))
-		log.Println("data", hex.EncodeToString(data))
+		bigPoint, _ := G1PointToBig(suite.G1().Point().Mul(si, nil))
+		log.Println(bigPoint[0].Text(10), bigPoint[1].Text(10))
 		s = append(s, si)
-		big, _ := ScalarToBig(si)
-		log.Println(big.Text(10))
+
 	}
 
 	ID_Point := make([]kyber.Point, 0)
@@ -241,7 +238,6 @@ func IBSAS_Verify(suite pairing.Suite, message []byte, X kyber.Point, Y kyber.Po
 		H1.Write(id)
 		id_i := suite.G1().Scalar().SetBytes(H1.Sum(nil))
 		ID_Point = append(ID_Point, suite.G1().Point().Mul(id_i, nil))
-
 	}
 
 	id_Tmp := suite.G1().Point().Null()
@@ -250,7 +246,12 @@ func IBSAS_Verify(suite pairing.Suite, message []byte, X kyber.Point, Y kyber.Po
 		for j := i + 1; j < len(s); j++ {
 			tmpS = suite.G1().Scalar().Mul(s[j], tmpS)
 		}
+		big, _ := ScalarToBig(tmpS)
+		log.Println("tmps :", tmpS, big.Text(10))
 		tmpS = suite.G1().Scalar().Inv(tmpS)
+		big, _ = ScalarToBig(tmpS)
+		log.Println("tmps Invt :", big.Text(10))
+
 		id_Tmp = suite.G1().Point().Add((suite.G1().Point().Mul(tmpS, ID_Point[i])), id_Tmp)
 	}
 
