@@ -9,6 +9,10 @@ module.exports = function (deployer) {
       }
     ).then(
       function(){
+        return deployer.link(BN256G1, Sakai);
+      }
+    ).then(
+      function(){
         return deployer.deploy(Sakai, Registry.address);
       }
     ).then(

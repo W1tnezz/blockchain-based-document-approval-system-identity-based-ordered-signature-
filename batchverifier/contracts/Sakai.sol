@@ -30,7 +30,6 @@ contract Sakai {
         bytes32 message = registry.getMessage();
         address[] memory SignOrder = registry.getSignOrder();
         require(SignOrder.length == signatures.length, "sig nums error");
-        
         for (uint i = 0; i < signatures.length; i++) {
             randoms.push(
                 uint256(
@@ -64,7 +63,7 @@ contract Sakai {
             checkPairingInput.push(BN256G2.G2_NEG_Y_IM);
             checkPairingInput.push(BN256G2.G2_NEG_Y_RE);
         }
-
+        
         // cal H(ID1) * H(ID2) * H(ID3) ...
         {
             uint256 idx = 0;

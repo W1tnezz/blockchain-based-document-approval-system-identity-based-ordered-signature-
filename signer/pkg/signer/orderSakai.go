@@ -145,9 +145,9 @@ func (s *Signer) makeCurrentSakai(SignOrder []common.Address, message []byte) {
 
 		if err != nil {
 			log.Println("SubmitBatch1 has err :", err)
+		}else {
+			log.Println("PASS!")
 		}
-
-		log.Println("SubmitBatch1 success")
 	} else {
 		s.SendSignatureToNext(SignOrder[s.nextSignerIndex], s.signatures, s.R)
 	}
