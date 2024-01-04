@@ -28,7 +28,7 @@ func (s *Signer) orderlySakai(event *RegistrySign) error {
 
 	if s.lastSignerIndex == -1 { // 表示第一个与其相等，是起始节点
 
-		s.makeCurrentSakai(event.SignOrder, message)
+		s.makeCurrentSakai(event.SignOrder, message, event.Typ)
 
 	} else {
 		// 不是第一个节点，需要被唤醒
@@ -46,7 +46,7 @@ func (s *Signer) orderlySakai(event *RegistrySign) error {
 				time.Sleep(1000 * time.Millisecond)
 			}
 		}
-		s.handleSakaiSignature(event.SignOrder, message)
+		s.handleSakaiSignature(event.SignOrder, message, event.Typ)
 	}
 	return nil
 }
@@ -81,7 +81,7 @@ func (s *Signer) SendSignatureToNext(nextSigner common.Address, signature []byte
 	cancel()
 }
 
-func (s *Signer) handleSakaiSignature(SignOrder []common.Address, message []byte) {
+func (s *Signer) handleSakaiSignature(SignOrder []common.Address, message []byte, typ uint8) {
 	G1PointSize := s.suite.G1().Point().MarshalSize()
 	G2PointSize := s.suite.G2().Point().MarshalSize()
 
@@ -110,13 +110,13 @@ func (s *Signer) handleSakaiSignature(SignOrder []common.Address, message []byte
 	if verifySakai(s.suite, lastSignature, lastMessage, lastR, s.mpk, lastNode.Identity) {
 		message = append(message, lastSignatureByte...)
 		// message = append(message, lastRByte...)
-		s.makeCurrentSakai(SignOrder, message)
+		s.makeCurrentSakai(SignOrder, message, typ)
 	} else {
 		log.Println("签名未通过", s.id)
 	}
 }
 
-func (s *Signer) makeCurrentSakai(SignOrder []common.Address, message []byte) {
+func (s *Signer) makeCurrentSakai(SignOrder []common.Address, message []byte, typ uint8) {
 	// 构造当前签名的结果
 	signature, R := sakai(s.suite, message, s.privateKey)
 
@@ -137,14 +137,19 @@ func (s *Signer) makeCurrentSakai(SignOrder []common.Address, message []byte) {
 
 	if s.nextSignerIndex == 0 { // 说明当前是最后一个节点
 		masterPubKey, signatures, setofR := s.makeSubmitSignature(SignOrder)
+
 		auth, err := bind.NewKeyedTransactorWithChainID(s.ecdsaPrivateKey, s.chainId)
+
 		if err != nil {
 			log.Println("NewKeyedTransactorWithChainID :", err)
 		}
-		_, err = s.Sakai.Submit(auth, masterPubKey, signatures, setofR)
-
+		if typ == 0{
+			_, err = s.Sakai.Submit(auth, masterPubKey, signatures, setofR)
+		} else{
+			_, err = s.Sakai.SubmitWithoutBatchVerify(auth, masterPubKey, signatures, setofR)
+		}
 		if err != nil {
-			log.Println("SubmitBatch1 has err :", err)
+			log.Println("Submit has err :", err)
 		}else {
 			log.Println("PASS!")
 		}

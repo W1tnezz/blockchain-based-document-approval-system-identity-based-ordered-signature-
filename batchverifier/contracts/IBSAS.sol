@@ -37,7 +37,7 @@ contract IBSAS {
 
         for(uint i = 1; i < SignOrder.length; i++){
             s = abi.encodePacked(s, registry.getSignerByAddress(SignOrder[i]).identity);
-            hashSi.push(uint256(sha256(s)) % BN256G1.NN);
+            hashSi.push(uint256(sha256(s)));
         }
 
         uint256[2] memory combine1;
@@ -48,7 +48,7 @@ contract IBSAS {
 
             uint256 scalar = 1;
             for(uint j = i; j < hashSi.length; j++){
-                scalar = mulmod(scalar, hashSi[i], BN256G1.NN);
+                scalar = mulmod(scalar, hashSi[j], BN256G1.NN);
             }
             scalar = BN256G1.modInverse(scalar);
             uint256 tempX;
@@ -75,7 +75,7 @@ contract IBSAS {
         checkPairingInput.push(mpk[0]);
         checkPairingInput.push(mpk[3]);
         checkPairingInput.push(mpk[2]);
-        BN256G1.bn256CheckPairingBatch(checkPairingInput);
+        require(BN256G1.bn256CheckPairingBatch(checkPairingInput), "first check failed!");
 
         delete checkPairingInput;
         checkPairingInput.push(_X[0]);
@@ -96,6 +96,8 @@ contract IBSAS {
         checkPairingInput.push(mpk[0]);
         checkPairingInput.push(mpk[3]);
         checkPairingInput.push(mpk[2]);
-        BN256G1.bn256CheckPairingBatch(checkPairingInput);
+        require(BN256G1.bn256CheckPairingBatch(checkPairingInput), "second check failed!");
+        delete checkPairingInput;
+        delete hashSi;
     }
 }

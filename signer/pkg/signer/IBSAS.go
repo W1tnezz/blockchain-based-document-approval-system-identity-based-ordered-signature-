@@ -21,12 +21,10 @@ func (s *Signer) IBSASScheme(event *RegistrySign) error {
 	s.message = message // 暂时存储初始消息
 
 	if s.lastSignerIndex == -1 { // 表示第一个与其相等，是起始节点
-
-		// TODO:
 		s.signatureIBSAS = append(s.signatureIBSAS, s.suite.G1().Point().Null())
 		s.signatureIBSAS = append(s.signatureIBSAS, s.suite.G1().Point().Null())
 		s.signatureIBSAS = append(s.signatureIBSAS, s.suite.G2().Point().Null())
-		s.makeCurrentIBSAS(event.SignOrder)
+		s.makeCurrentIBSAS(event.SignOrder, event.Typ)
 
 	} else {
 		// 不是第一个节点，需要被唤醒
@@ -44,7 +42,7 @@ func (s *Signer) IBSASScheme(event *RegistrySign) error {
 				time.Sleep(1000 * time.Millisecond)
 			}
 		}
-		s.makeCurrentIBSAS(event.SignOrder)
+		s.makeCurrentIBSAS(event.SignOrder, event.Typ)
 	}
 	return nil
 }
@@ -65,7 +63,7 @@ func (s *Signer) receiveIBSASSignature(X []byte, Y []byte, Z []byte) {
 }
 
 // 生成当前节点的签名
-func (s *Signer) makeCurrentIBSAS(SignOrde []common.Address) {
+func (s *Signer) makeCurrentIBSAS(SignOrde []common.Address, typ uint8) {
 
 	ids := make([][]byte, 0)
 	//  找到所有之前的身份
@@ -163,7 +161,6 @@ func (s *Signer) submitSignature(X kyber.Point, Y kyber.Point, Z kyber.Point, U 
 		log.Println("链下验证成功")
 	} else {
 		log.Println("链下验证失败")
-
 	}
 
 	// 下面是提交区块链的
