@@ -1,9 +1,15 @@
 package schemes
 
-// import (
-// 	"log"
-// )
+import (
+	"log"
 
-// func hello() {
-// 	log.Println("888")
-// }
+	"github.com/Nik-U/pbc"
+)
+
+func Liu(pairing *pbc.Pairing, g *pbc.Element) {
+	log.Println(pairing, g)
+}
+
+func UserKeyGen() {
+
+}
