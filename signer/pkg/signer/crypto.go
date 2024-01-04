@@ -241,22 +241,15 @@ func IBSAS_Verify(suite pairing.Suite, message []byte, X kyber.Point, Y kyber.Po
 	}
 
 	id_Tmp := suite.G1().Point().Null()
-	gen, _ := big.NewInt(0).SetString("30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001", 16)
 	for i, _ := range ID_Point {
 		tmpS := suite.G1().Scalar().One()
-		intS := big.NewInt(1)
 		for j := i + 1; j < len(s); j++ {
 			tmpS = suite.G1().Scalar().Mul(s[j], tmpS)
 		
-			
 			sjBig ,_ := ScalarToBig(s[j])
-			intS = intS.Mul(intS, sjBig).Mod(intS, gen)
-			
-
 			log.Printf("s[j]: ", sjBig.Text(10))
 
 			tmpSBigInt, _ := ScalarToBig(tmpS)
-			log.Printf("intS: ", intS.Text(10))
 			log.Printf("tmpSBigInt: ", tmpSBigInt.Text(10))
 		}
 		tmpS = suite.G1().Scalar().Inv(tmpS)
