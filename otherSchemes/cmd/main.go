@@ -13,9 +13,11 @@ func main() {
 	pairing := params.NewPairing()
 
 	g := pairing.NewG1().Rand()
-	// h := pairing.NewG2().Rand()
 
-	schemes.Liu(pairing, g)
+	msk := pairing.NewZr().Rand()
+	mpk := pairing.NewG1().PowZn(g, msk)
+
+	schemes.Liu(pairing, g, msk, mpk)
 	schemes.OMS()
 	schemes.WSA()
 
