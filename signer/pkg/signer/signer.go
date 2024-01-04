@@ -116,7 +116,17 @@ func (s *Signer) WatchAndHandleSignatureRequestsLog(ctx context.Context, o *Orac
 				if err := s.IBSASScheme(event); err != nil {
 					log.Println("Handle SignatureRequest log:", err)
 				}
+			// 2: NOTBATCH
+			case 2:
+				isSigner, _ := s.isSigner(event.SignOrder) // 判断该节点是否是参与签名的节点
+				if !isSigner {
+					continue
+				}
+				if err := s.orderlySakai(event); err != nil {
+					log.Println("Handle SignatureRequest log:", err)
+				}
 			}
+			
 
 		case err = <-sub.Err():
 			return err

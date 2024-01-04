@@ -31,7 +31,7 @@ var (
 
 // SakaiMetaData contains all meta data concerning the Sakai contract.
 var SakaiMetaData = &bind.MetaData{
-	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_registryContract\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"uint256[4]\",\"name\":\"masterPubKey\",\"type\":\"uint256[4]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"setOfR\",\"type\":\"uint256[4][]\"}],\"name\":\"submit\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
+	ABI: "[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_registryContract\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"inputs\":[{\"internalType\":\"uint256[4]\",\"name\":\"masterPubKey\",\"type\":\"uint256[4]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"setOfR\",\"type\":\"uint256[4][]\"}],\"name\":\"submit\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[4]\",\"name\":\"masterPubKey\",\"type\":\"uint256[4]\"},{\"internalType\":\"uint256[2][]\",\"name\":\"signatures\",\"type\":\"uint256[2][]\"},{\"internalType\":\"uint256[4][]\",\"name\":\"setOfR\",\"type\":\"uint256[4][]\"}],\"name\":\"submitWithoutBatchVerify\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}]",
 }
 
 // SakaiABI is the input ABI used to generate the binding from.
@@ -199,4 +199,25 @@ func (_Sakai *SakaiSession) Submit(masterPubKey [4]*big.Int, signatures [][2]*bi
 // Solidity: function submit(uint256[4] masterPubKey, uint256[2][] signatures, uint256[4][] setOfR) payable returns()
 func (_Sakai *SakaiTransactorSession) Submit(masterPubKey [4]*big.Int, signatures [][2]*big.Int, setOfR [][4]*big.Int) (*types.Transaction, error) {
 	return _Sakai.Contract.Submit(&_Sakai.TransactOpts, masterPubKey, signatures, setOfR)
+}
+
+// SubmitWithoutBatchVerify is a paid mutator transaction binding the contract method 0xd7b31e1e.
+//
+// Solidity: function submitWithoutBatchVerify(uint256[4] masterPubKey, uint256[2][] signatures, uint256[4][] setOfR) payable returns()
+func (_Sakai *SakaiTransactor) SubmitWithoutBatchVerify(opts *bind.TransactOpts, masterPubKey [4]*big.Int, signatures [][2]*big.Int, setOfR [][4]*big.Int) (*types.Transaction, error) {
+	return _Sakai.contract.Transact(opts, "submitWithoutBatchVerify", masterPubKey, signatures, setOfR)
+}
+
+// SubmitWithoutBatchVerify is a paid mutator transaction binding the contract method 0xd7b31e1e.
+//
+// Solidity: function submitWithoutBatchVerify(uint256[4] masterPubKey, uint256[2][] signatures, uint256[4][] setOfR) payable returns()
+func (_Sakai *SakaiSession) SubmitWithoutBatchVerify(masterPubKey [4]*big.Int, signatures [][2]*big.Int, setOfR [][4]*big.Int) (*types.Transaction, error) {
+	return _Sakai.Contract.SubmitWithoutBatchVerify(&_Sakai.TransactOpts, masterPubKey, signatures, setOfR)
+}
+
+// SubmitWithoutBatchVerify is a paid mutator transaction binding the contract method 0xd7b31e1e.
+//
+// Solidity: function submitWithoutBatchVerify(uint256[4] masterPubKey, uint256[2][] signatures, uint256[4][] setOfR) payable returns()
+func (_Sakai *SakaiTransactorSession) SubmitWithoutBatchVerify(masterPubKey [4]*big.Int, signatures [][2]*big.Int, setOfR [][4]*big.Int) (*types.Transaction, error) {
+	return _Sakai.Contract.SubmitWithoutBatchVerify(&_Sakai.TransactOpts, masterPubKey, signatures, setOfR)
 }

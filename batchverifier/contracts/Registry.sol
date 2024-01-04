@@ -20,7 +20,8 @@ contract Registry {
 
     enum SignType {
         SAKAI,
-        IBSAS
+        IBSAS,
+        NOTBATCH
     }
 
     event Sign(SignType typ, bytes32 message, address[] signOrder);
