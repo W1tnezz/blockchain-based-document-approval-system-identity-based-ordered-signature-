@@ -33,7 +33,7 @@ func sakaiExperiment(pairing *pbc.Pairing, msk *pbc.Element, mpk *pbc.Element, g
 		log.Printf("开始测试Sakai签名开销, 签名人数: %d", signerNum)
 		signCosts := make([]int, signerNum)
 		
-		for i := 0; i < 50; i++{
+		for i := 0; i < 10; i++{
 			signerSet := make([]*schemes.SakaiKey, 0)
 			for i := 0; i < signerNum; i++ {
 				key := schemes.SakaiKeyGen(pairing, msk, gen)
@@ -69,7 +69,7 @@ func sakaiExperiment(pairing *pbc.Pairing, msk *pbc.Element, mpk *pbc.Element, g
 
 		for i := 0; i < signerNum; i++{
 			signCosts[i] = signCosts[i] / 50
-			log.Printf("50次实验, 第%d位签名者的平均签名开销: %d microseconds", i + 1, signCosts[i])
+			log.Printf("10次实验, 第%d位签名者的平均签名开销: %d microseconds", i + 1, signCosts[i])
 		}
 		return
 	} 
