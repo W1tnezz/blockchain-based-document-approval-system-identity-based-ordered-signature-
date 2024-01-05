@@ -11,20 +11,28 @@ import (
 )
 
 func main() {
-	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	log.SetFlags(log.Lshortfile)
 	log.SetOutput(os.Stdout)
 	
 	// Initialize group and the generator
 	params := pbc.GenerateA(160, 512)
 	pairing := params.NewPairing()
 
+	u := pairing.NewG1().Rand()
+	v := pairing.NewG1().Rand()
 	g := pairing.NewG1().Rand()
 
 	msk := pairing.NewZr().Rand()
 	mpk := pairing.NewG1().PowZn(g, msk)
 
-	sakaiExperiment(pairing, msk, mpk, g, 8)
+	log.Println("公共参数: ")
+	log.Println("u: ", u)
+	log.Println("v: ", v)
+	log.Println("g: ", g)
+	log.Println("master private key: ", msk)
+	log.Println("master public key: ", mpk)
 
+	sakaiExperiment(pairing, msk, mpk, g, 8)
 }
 
 
@@ -68,7 +76,7 @@ func sakaiExperiment(pairing *pbc.Pairing, msk *pbc.Element, mpk *pbc.Element, g
 		}
 
 		for i := 0; i < signerNum; i++{
-			signCosts[i] = signCosts[i] / 50
+			signCosts[i] = signCosts[i] / 10
 			log.Printf("10次实验, 第%d位签名者的平均签名开销: %d microseconds", i + 1, signCosts[i])
 		}
 		return
