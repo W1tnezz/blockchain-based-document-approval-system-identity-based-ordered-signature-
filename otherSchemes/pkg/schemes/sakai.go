@@ -19,7 +19,7 @@ type SakaiKey struct {
 func SakaiKeyGen(pairing *pbc.Pairing, msk *pbc.Element, gen *pbc.Element) *SakaiKey {
 	key := new(SakaiKey)
 	key.pairing = pairing
-	key.PublicKey = getRandstring(10)
+	key.PublicKey = GetRandstring(10)
 	key.PublicKeyPoint = pairing.NewG1().SetFromStringHash(key.PublicKey, sha256.New())
 	key.privateKey = pairing.NewG1().MulZn(key.PublicKeyPoint, msk)
 	key.generator = gen

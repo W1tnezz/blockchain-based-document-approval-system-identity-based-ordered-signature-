@@ -10,33 +10,36 @@ import (
 
 )
 
+var Params = pbc.GenerateA(160, 512)
+var Pairing = Params.NewPairing()
+
+var U = Pairing.NewG1().Rand()
+var V = Pairing.NewG1().Rand()
+var G = Pairing.NewG1().Rand()
+
+var Msk = Pairing.NewZr().Rand()
+var Mpk = Pairing.NewG1().PowZn(G, Msk)
+
 func main() {
 	log.SetFlags(log.Lshortfile)
 	log.SetOutput(os.Stdout)
 	
 	// Initialize group and the generator
-	params := pbc.GenerateA(160, 512)
-	pairing := params.NewPairing()
 
-	u := pairing.NewG1().Rand()
-	v := pairing.NewG1().Rand()
-	g := pairing.NewG1().Rand()
-
-	msk := pairing.NewZr().Rand()
-	mpk := pairing.NewG1().PowZn(g, msk)
 
 	log.Println("公共参数: ")
-	log.Println("u: ", u)
-	log.Println("v: ", v)
-	log.Println("g: ", g)
-	log.Println("master private key: ", msk)
-	log.Println("master public key: ", mpk)
+	log.Println("u: ", U)
+	log.Println("v: ", V)
+	log.Println("g: ", G)
+	log.Println("master private key: ", Msk)
+	log.Println("master public key: ", Mpk)
 
-	sakaiExperiment(pairing, msk, mpk, g, 8)
+	// sakaiExperiment(8)
+	iBSASExperiment(8)
 }
 
 
-func sakaiExperiment(pairing *pbc.Pairing, msk *pbc.Element, mpk *pbc.Element, gen *pbc.Element, signerNum int) {
+func sakaiExperiment(signerNum int) {
 	if signerNum > 0{
 		log.Printf("开始测试Sakai签名开销, 签名人数: %d", signerNum)
 		signCosts := make([]int, signerNum)
@@ -44,7 +47,7 @@ func sakaiExperiment(pairing *pbc.Pairing, msk *pbc.Element, mpk *pbc.Element, g
 		for i := 0; i < 10; i++{
 			signerSet := make([]*schemes.SakaiKey, 0)
 			for i := 0; i < signerNum; i++ {
-				key := schemes.SakaiKeyGen(pairing, msk, gen)
+				key := schemes.SakaiKeyGen(Pairing, Msk, G)
 				signerSet = append(signerSet, key)
 			}
 		
@@ -63,7 +66,7 @@ func sakaiExperiment(pairing *pbc.Pairing, msk *pbc.Element, mpk *pbc.Element, g
 				var err error
 	
 				beginTime := time.Now()
-				sig, message, err = signerSet[i].SequentialSign(sigSet[i - 1], message, mpk, signerSet[i - 1].PublicKeyPoint, i + 1)
+				sig, message, err = signerSet[i].SequentialSign(sigSet[i - 1], message, Mpk, signerSet[i - 1].PublicKeyPoint, i + 1)
 				cost = time.Since(beginTime)
 	
 				if err != nil {
@@ -82,4 +85,28 @@ func sakaiExperiment(pairing *pbc.Pairing, msk *pbc.Element, mpk *pbc.Element, g
 		return
 	} 
 	log.Fatal("Signer number is 0")
+}
+
+
+func iBSASExperiment(signerNum int) {
+	// signCost := make([]int, signerNum)
+
+	for i := 0; i < 10; i++{
+		signerSet := make([]*schemes.IBSASKey, 0)
+		idSet := make([]string, 0)
+		msgSet := make([]string, 0)
+
+		for j := 0; j < signerNum; j++{
+			key := schemes.IBSASKenGen(Pairing, Msk, U, V, G)
+			signerSet = append(signerSet, key)
+			idSet = append(idSet, key.PublicKey)
+			msgSet = append(msgSet, schemes.GetRandstring(10))
+		}
+
+
+	}
+	key := schemes.IBSASKenGen(Pairing, Msk, U, V, G)
+	X, Y, Z := key.IBSASign(1, []string{key.PublicKey}, []string{"test"}, Pairing.NewG1().Set0(), Pairing.NewG1().Set0(), Pairing.NewG1().Set0())
+	res := key.IBSASVerify(1, []string{key.PublicKey}, []string{"test"}, Mpk, X, Y, Z)
+	log.Println("Sign result: ", res)
 }

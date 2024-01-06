@@ -20,7 +20,7 @@ func HToZr(pairing *pbc.Pairing, points ...*pbc.Element) *pbc.Element {
 	return pairing.NewZr().SetBytes(H.Sum(nil))
 }
 
-func getRandstring(length int) string {
+func GetRandstring(length int) string {
 	if length < 1 {
 		return ""
 	}

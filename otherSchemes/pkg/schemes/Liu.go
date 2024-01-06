@@ -38,7 +38,7 @@ func Liu(pairing *pbc.Pairing, g *pbc.Element, msk *pbc.Element, mpk *pbc.Elemen
 	PkSet = append(PkSet, *pk)
 	Profs = append(Profs, *prof)
 
-	id := getRandstring(16)
+	id := GetRandstring(16)
 	idSet = append(idSet, id)
 	pk.certId = Certify(pairing, id, pk, msk, g)
 }
