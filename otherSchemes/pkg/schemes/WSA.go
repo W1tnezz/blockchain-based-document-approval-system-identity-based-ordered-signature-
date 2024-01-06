@@ -35,7 +35,7 @@ func WSA(pairing *pbc.Pairing, g *pbc.Element) {
 
 	for i := 0; i < 8; i++ {
 
-		s = append(s, getRandstring(16))
+		s = append(s, GetRandstring(16))
 		M = append(M, makeSingleM(pairing))
 
 		pk := keyGen(pairing, g)

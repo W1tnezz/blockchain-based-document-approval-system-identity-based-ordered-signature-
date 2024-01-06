@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func getRandstring(length int) string {
+func GetRandstring(length int) string {
 	if length < 1 {
 		return ""
 	}

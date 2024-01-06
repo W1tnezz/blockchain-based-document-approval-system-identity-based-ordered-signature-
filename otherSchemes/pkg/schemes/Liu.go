@@ -51,10 +51,10 @@ func Liu(pairing *pbc.Pairing, g *pbc.Element, msk *pbc.Element, mpk *pbc.Elemen
 	lastSignature.Z = pairing.NewG1().Set1()
 
 	for i := 0; i < 8; i++ {
-		id := getRandstring(16)
+		id := GetRandstring(16)
 		idSet = append(idSet, id)
-		s = append(s, getRandstring(16))
-		m = append(m, getRandstring(16))
+		s = append(s, GetRandstring(16))
+		m = append(m, GetRandstring(16))
 
 		pk, prof := userKeyGen(pairing, g)
 		pk.certId = certify(pairing, id, pk, msk, g)
