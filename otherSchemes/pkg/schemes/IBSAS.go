@@ -32,9 +32,8 @@ func IBSASKenGen(pairing *pbc.Pairing, msk *pbc.Element, u *pbc.Element, v *pbc.
 func (k *IBSASKey) IBSASign(index int, idSet []string, msgSet []string, x *pbc.Element, y *pbc.Element, z *pbc.Element) (*pbc.Element, *pbc.Element, *pbc.Element) {
 	// cal si array
 	siSet := make([]*pbc.Element, 0)
-	siStr := idSet[0]+msgSet[0]
-	siSet = append(siSet, k.pairing.NewZr().SetFromStringHash(siStr, sha256.New()))
-	for i := 1; i < index; i++ {
+	siStr := ""
+	for i := 0; i < index; i++ {
 		siStr = siStr + idSet[i] + msgSet[i]
 		siSet = append(siSet, k.pairing.NewZr().SetFromStringHash(siStr, sha256.New()))
 	}
@@ -48,7 +47,7 @@ func (k *IBSASKey) IBSASign(index int, idSet []string, msgSet []string, x *pbc.E
 
 	// cal Y
 	pow := k.pairing.NewZr().Set1()
-	for i := 0; i < index-1; i++ {
+	for i := 0; i < index - 1; i++ {
 		pow.Mul(pow, siSet[i])
 	}
 	pow.Invert(pow)
@@ -68,8 +67,8 @@ func (k *IBSASKey) IBSASign(index int, idSet []string, msgSet []string, x *pbc.E
 func (k *IBSASKey) IBSASVerify(index int, idSet []string, msgSet []string, mpk *pbc.Element, x *pbc.Element, y *pbc.Element, z *pbc.Element) bool {
 	si := ""
 	siSet := make([]*pbc.Element, 0)
-	for i := 0; i < len(idSet); i++{
-		si = si + idSet[0] + msgSet[i]
+	for i := 0; i < index; i++{
+		si = si + idSet[i] + msgSet[i]
 		siHash := k.pairing.NewZr().SetFromStringHash(si, sha256.New())
 		siSet = append(siSet, siHash)
 	}
@@ -100,9 +99,9 @@ func (k *IBSASKey) IBSASVerify(index int, idSet []string, msgSet []string, mpk *
 		for i := 0; i < len(siSet); i++{
 			pow.Mul(pow, siSet[i])
 		}
-		z1 := z.MulZn(z, pow)
+		z1 := k.pairing.NewG1().MulZn(z, pow)
 		left := k.pairing.NewG1().Set0()
-		for i := 0; i < len(idSet); i++{
+		for i := 0; i < len(siSet); i++{
 			left = left.Add(left, k.pairing.NewG1().SetFromStringHash(idSet[i], sha256.New()))
 		}
 		

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"otherSchemes/pkg/schemes"
@@ -32,6 +33,7 @@ func main() {
 	log.Println("master private key: ", Msk)
 	log.Println("master public key: ", Mpk)
 
+	sakaiExperiment(8)
 	sakaiExperiment(8)
 	iBSASExperiment(8)
 	schemes.OMS(Pairing, G, 8)
@@ -81,29 +83,55 @@ func sakaiExperiment(signerNum int) {
 			signCosts[i] = signCosts[i] / 10
 			log.Printf("10次实验, 第%d位签名者的平均签名开销: %d microseconds", i+1, signCosts[i])
 		}
+		fmt.Println("---------------------------------------------------------------------")
 		return
 	}
 	log.Fatal("Signer number is 0")
 }
 
 func iBSASExperiment(signerNum int) {
-	// signCost := make([]int, signerNum)
+	if signerNum > 0{
+		log.Printf("开始测试IBSAS签名开销, 签名人数: %d", signerNum)
+		signCost := make([]int, signerNum)
 
-	for i := 0; i < 10; i++ {
-		signerSet := make([]*schemes.IBSASKey, 0)
-		idSet := make([]string, 0)
-		msgSet := make([]string, 0)
-
-		for j := 0; j < signerNum; j++ {
-			key := schemes.IBSASKenGen(Pairing, Msk, U, V, G)
-			signerSet = append(signerSet, key)
-			idSet = append(idSet, key.PublicKey)
-			msgSet = append(msgSet, schemes.GetRandstring(10))
+		for i := 0; i < 10; i++{
+			signerSet := make([]*schemes.IBSASKey, 0)
+			idSet := make([]string, 0)
+			msgSet := make([]string, 0)
+	
+			for j := 0; j < signerNum; j++{
+				key := schemes.IBSASKenGen(Pairing, Msk, U, V, G)
+				signerSet = append(signerSet, key)
+				idSet = append(idSet, key.PublicKey)
+				msgSet = append(msgSet, schemes.GetRandstring(10))
+			}
+			X := Pairing.NewG1().Set0()
+			Y := Pairing.NewG1().Set0()
+			Z := Pairing.NewG1().Set0()
+	
+			begin := time.Now()
+			X, Y, Z = signerSet[0].IBSASign(1, idSet, msgSet, X, Y, Z)
+			cost := time.Since(begin)
+			
+			signCost[0] += int(cost.Microseconds())
+	
+			for j := 1; j < signerNum; j++{
+				begin := time.Now()
+				if !signerSet[j].IBSASVerify(j, idSet, msgSet, Mpk, X, Y, Z){
+					log.Fatal("Signature verify failed!")
+					return
+				}
+				X, Y, Z = signerSet[j].IBSASign(j + 1, idSet, msgSet, X, Y, Z)
+				cost := time.Since(begin)
+				signCost[j] += int(cost.Microseconds())
+			}
 		}
-
+		for i := 0; i < signerNum; i++{
+			signCost[i] = signCost[i] / 10
+			log.Printf("10次实验, 第%d位签名者的平均签名开销: %d microseconds", i + 1, signCost[i])
+		}
+		fmt.Println("---------------------------------------------------------------------")
+		return
 	}
-	key := schemes.IBSASKenGen(Pairing, Msk, U, V, G)
-	X, Y, Z := key.IBSASign(1, []string{key.PublicKey}, []string{"test"}, Pairing.NewG1().Set0(), Pairing.NewG1().Set0(), Pairing.NewG1().Set0())
-	res := key.IBSASVerify(1, []string{key.PublicKey}, []string{"test"}, Mpk, X, Y, Z)
-	log.Println("Sign result: ", res)
+	log.Fatal("Signer number is 0")
 }
