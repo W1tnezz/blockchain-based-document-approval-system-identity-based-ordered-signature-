@@ -26,41 +26,52 @@ type OMSSignature struct {
 
 var pkSetOMS = make([]*OMSPK, 0)
 
-func OMS(pairing *pbc.Pairing, g *pbc.Element) {
-	lastSignature := new(OMSSignature)
-	lastSignature.S = pairing.NewG1().Set1()
-	lastSignature.R = pairing.NewG1().Set1()
-	lastSignature.W = pairing.NewG1().Set1()
+func OMS(pairing *pbc.Pairing, g *pbc.Element, signerNum int) {
+	log.Printf("开始测试OMS签名开销, 签名人数: %d", signerNum)
+	signCosts := make([]int, signerNum)
+	for i := 0; i < 10; i++ {
 
-	m := pairing.NewZr().Rand()
-	x := PRF(pairing, m)
+		lastSignature := new(OMSSignature)
+		lastSignature.S = pairing.NewG1().Set1()
+		lastSignature.R = pairing.NewG1().Set1()
+		lastSignature.W = pairing.NewG1().Set1()
 
-	s := pairing.NewZr().Rand()
+		m := pairing.NewZr().Rand()
+		x := PRF(pairing, m)
 
-	u := pairing.NewG1().Rand()
-	h := pairing.NewG1().Rand()
-	d := pairing.NewG1().Rand()
-	c := pairing.NewG1().Rand()
-	z := pairing.NewG1().Rand()
-	y := pairing.NewG1().Rand()
+		s := pairing.NewZr().Rand()
 
-	for i := 0; i < 8; i++ {
+		u := pairing.NewG1().Rand()
+		h := pairing.NewG1().Rand()
+		d := pairing.NewG1().Rand()
+		c := pairing.NewG1().Rand()
+		z := pairing.NewG1().Rand()
+		y := pairing.NewG1().Rand()
 
-		pk := keyGenOMS(pairing, g)
-		pkSetOMS = append(pkSetOMS, pk)
+		for i := 0; i < 8; i++ {
 
-		start := time.Now()
-		currentSignature := signOMS(pairing, g, lastSignature, m, x, s, u, h, d, c, z, y)
+			pk := keyGenOMS(pairing, g)
+			pkSetOMS = append(pkSetOMS, pk)
 
-		log.Println("当前用户的签名总耗时：", time.Since(start))
-		if currentSignature == nil {
-			break
+			start := time.Now()
+			currentSignature := signOMS(pairing, g, lastSignature, m, x, s, u, h, d, c, z, y)
+
+			cost := time.Since(start)
+
+			if currentSignature == nil {
+				break
+			}
+			signCosts[i] += int(cost.Microseconds())
+			lastSignature = currentSignature
 		}
-		// log.Println(currentSignature)
-		lastSignature = currentSignature
+		pkSetOMS = make([]*OMSPK, 0)
+
 	}
-	log.Println()
-	log.Println()
+	for i := 0; i < signerNum; i++ {
+		signCosts[i] = signCosts[i] / 10
+		log.Printf("10次实验, 第%d位签名者的平均签名开销: %d microseconds", i+1, signCosts[i])
+	}
+
 }
 
 func keyGenOMS(pairing *pbc.Pairing, g *pbc.Element) *OMSPK {
@@ -76,10 +87,9 @@ func keyGenOMS(pairing *pbc.Pairing, g *pbc.Element) *OMSPK {
 }
 
 func signOMS(pairing *pbc.Pairing, g *pbc.Element, lastSignature *OMSSignature, m *pbc.Element, x *pbc.Element, s *pbc.Element, u *pbc.Element, h *pbc.Element, d *pbc.Element, c *pbc.Element, z *pbc.Element, y *pbc.Element) *OMSSignature {
-	start := time.Now()
+
 	if verifyOMS(pairing, lastSignature, g, u, h, m, x, d, c, z, s, y) {
-		log.Printf("第%d个用户的验证耗时：", len(pkSetOMS)-1)
-		log.Println(time.Since(start))
+
 		r := pairing.NewZr().Rand()
 		w := pairing.NewZr().Rand()
 
@@ -94,7 +104,6 @@ func signOMS(pairing *pbc.Pairing, g *pbc.Element, lastSignature *OMSSignature, 
 
 		S_tmp2 := pairing.NewG1().PowZn(pairing.NewG1().Mul(pairing.NewG1().PowZn(c, lg_s), pairing.NewG1().Mul(y, pairing.NewG1().PowZn(z, s))), r)
 		S_tmp3 := pairing.NewG1().PowZn(currentSignature.W, pairing.NewZr().Add(currentPk.v, pairing.NewZr().MulBig(currentPk.t, big.NewInt(int64(len(pkSetOMS))))))
-
 
 		S_tmp4 := pairing.NewG1().Set1()
 

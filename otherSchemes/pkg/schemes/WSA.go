@@ -23,36 +23,48 @@ type WSASignature struct {
 	S2 *pbc.Element
 }
 
-var k = 8
+var k = 256
 var pkSetWSA = make([]*WSAPK, 0)
 var M = make([][]*pbc.Element, 0)
 
-func WSA(pairing *pbc.Pairing, g *pbc.Element) {
+func WSA(pairing *pbc.Pairing, g *pbc.Element, signerNum int) {
+	log.Printf("开始测试WSA签名开销, 签名人数: %d", signerNum)
+	signCosts := make([]int, signerNum)
+	for i := 0; i < 10; i++ {
 
-	lastSignature := new(WSASignature)
-	lastSignature.S1 = pairing.NewG1().Set1()
-	lastSignature.S2 = pairing.NewG1().Set1()
+		lastSignature := new(WSASignature)
+		lastSignature.S1 = pairing.NewG1().Set1()
+		lastSignature.S2 = pairing.NewG1().Set1()
 
-	for i := 0; i < 8; i++ {
+		for i := 0; i < signerNum; i++ {
 
-		s = append(s, GetRandstring(16))
-		M = append(M, makeSingleM(pairing))
+			s = append(s, GetRandstring(16))
+			M = append(M, makeSingleM(pairing))
 
-		pk := keyGen(pairing, g)
-		pkSetWSA = append(pkSetWSA, pk)
+			pk := keyGen(pairing, g)
+			pkSetWSA = append(pkSetWSA, pk)
 
-		start := time.Now()
-		currentSignature := signWSA(pairing, g, lastSignature)
+			start := time.Now()
+			currentSignature := signWSA(pairing, g, lastSignature)
+			cost := time.Since(start)
 
-		log.Println("当前用户的签名总耗时：", time.Since(start))
-		if currentSignature == nil {
-			break
+			if currentSignature == nil {
+				log.Fatal("验证失败")
+				break
+			}
+			signCosts[i] += int(cost.Microseconds())
+
+			lastSignature = currentSignature
 		}
-		// log.Println(currentSignature)
-		lastSignature = currentSignature
+
+		pkSetWSA = make([]*WSAPK, 0)
+		M = make([][]*pbc.Element, 0)
 	}
-	log.Println()
-	log.Println()
+
+	for i := 0; i < signerNum; i++ {
+		signCosts[i] = signCosts[i] / 10
+		log.Printf("10次实验, 第%d位签名者的平均签名开销: %d microseconds", i+1, signCosts[i])
+	}
 
 }
 
@@ -93,10 +105,9 @@ func makeSingleM(pairing *pbc.Pairing) []*pbc.Element {
 }
 
 func signWSA(pairing *pbc.Pairing, g *pbc.Element, lastSignature *WSASignature) *WSASignature {
-	start := time.Now()
+
 	if verifyWSA(pairing, lastSignature, g, len(pkSetWSA)-1) {
-		log.Printf("第%d个用户的验证耗时：", len(pkSetWSA)-1)
-		log.Println(time.Since(start))
+
 		// 执行当前用户的签名
 		currentPk := pkSetWSA[len(pkSetWSA)-1]
 		currentM := M[len(M)-1]
@@ -148,7 +159,6 @@ func signWSA(pairing *pbc.Pairing, g *pbc.Element, lastSignature *WSASignature) 
 func verifyWSA(pairing *pbc.Pairing, Signature *WSASignature, g *pbc.Element, index int) bool {
 	// 第一个签名
 	if index == 0 {
-		log.Println(pkSetWSA)
 		return Signature.S1.Is1() && Signature.S2.Is1()
 	}
 
