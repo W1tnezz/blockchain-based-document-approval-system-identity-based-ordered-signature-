@@ -33,11 +33,15 @@ func main() {
 	log.Println("master private key: ", Msk)
 	log.Println("master public key: ", Mpk)
 
+	fmt.Println("---------------------------------------------------------------------")
 	sakaiExperiment(8)
-	sakaiExperiment(8)
+	fmt.Println("---------------------------------------------------------------------")
 	iBSASExperiment(8)
+	fmt.Println("---------------------------------------------------------------------")
 	schemes.OMS(Pairing, G, 8)
+	fmt.Println("---------------------------------------------------------------------")
 	schemes.WSA(Pairing, G, 8)
+	fmt.Println("---------------------------------------------------------------------")
 }
 
 func sakaiExperiment(signerNum int) {
@@ -83,7 +87,7 @@ func sakaiExperiment(signerNum int) {
 			signCosts[i] = signCosts[i] / 10
 			log.Printf("10次实验, 第%d位签名者的平均签名开销: %d microseconds", i+1, signCosts[i])
 		}
-		fmt.Println("---------------------------------------------------------------------")
+		
 		return
 	}
 	log.Fatal("Signer number is 0")
@@ -130,7 +134,6 @@ func iBSASExperiment(signerNum int) {
 			signCost[i] = signCost[i] / 10
 			log.Printf("10次实验, 第%d位签名者的平均签名开销: %d microseconds", i + 1, signCost[i])
 		}
-		fmt.Println("---------------------------------------------------------------------")
 		return
 	}
 	log.Fatal("Signer number is 0")
